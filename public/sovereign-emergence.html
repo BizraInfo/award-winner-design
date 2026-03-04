@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BIZRA — Sovereign Emergence</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=IBM+Plex+Mono:wght@300;400;500;600&family=Amiri:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --abyss:#020408;--navy:#0a1628;--sf:#0a1018;--bd:#141e30;
+  --gold:#c9a962;--gold-b:#e8cc7a;--gold-d:#7a5a28;--gold-f:rgba(201,169,98,.06);
+  --cyan:#5ac8d8;--green:#5ae89a;--red:#e85a5a;--purple:#a06ae8;--orange:#e8a040;
+  --text:#b8c4d8;--dim:#3a4a60;--bright:#eef2ff;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--abyss);color:var(--text);font-family:'IBM Plex Mono',monospace;
+  display:flex;min-height:100vh;overflow:hidden;-webkit-font-smoothing:antialiased}
+::selection{background:rgba(201,169,98,.3)}
+
+/* ═══ SIDEBAR ═══ */
+.sidebar{width:280px;flex-shrink:0;background:rgba(5,9,16,.97);backdrop-filter:blur(20px);
+  border-right:1px solid var(--bd);padding:0;overflow-y:auto;overflow-x:hidden;z-index:100}
+.sidebar::-webkit-scrollbar{width:2px}
+.sidebar::-webkit-scrollbar-thumb{background:var(--bd)}
+
+.sb-header{padding:16px 14px 12px;border-bottom:1px solid var(--bd)}
+.sb-brand{font-family:'Cinzel',serif;font-size:10px;font-weight:600;letter-spacing:.4em;color:var(--gold)}
+.sb-title{font-family:'Cinzel',serif;font-size:13px;font-weight:500;color:var(--bright);margin-top:6px;line-height:1.4}
+.sb-arabic{font-family:'Amiri',serif;font-size:14px;color:rgba(201,169,98,.18);margin-top:4px}
+.sb-sub{font-size:7px;letter-spacing:1.5px;color:var(--dim);text-transform:uppercase;margin-top:6px}
+
+.sb-section{padding:12px 14px;border-bottom:1px solid var(--bd)}
+.sb-label{font-size:6.5px;letter-spacing:2.5px;color:var(--dim);text-transform:uppercase;margin-bottom:8px}
+
+/* Seed controls */
+.seed-display{font-size:20px;font-weight:600;color:var(--gold);text-align:center;
+  padding:8px;background:rgba(201,169,98,.03);border:1px solid rgba(201,169,98,.06);margin-bottom:8px}
+.seed-btns{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:4px}
+.seed-btn{background:var(--sf);border:1px solid var(--bd);color:var(--text);padding:5px 0;
+  cursor:pointer;font:inherit;font-size:7px;letter-spacing:1px;text-transform:uppercase;
+  transition:all .15s}
+.seed-btn:hover{border-color:var(--gold-d);color:var(--gold)}
+.seed-input{width:100%;margin-top:6px;background:var(--sf);border:1px solid var(--bd);
+  color:var(--text);padding:5px 8px;font:inherit;font-size:8px;outline:none}
+.seed-input:focus{border-color:var(--gold-d)}
+
+/* Parameter controls */
+.param{margin-bottom:8px}
+.param-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:3px}
+.param-name{font-size:7.5px;color:var(--text);letter-spacing:.3px}
+.param-val{font-size:7.5px;color:var(--gold);font-weight:500}
+.param input[type="range"]{width:100%;height:2px;-webkit-appearance:none;appearance:none;
+  background:var(--bd);outline:none;cursor:pointer}
+.param input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:10px;height:10px;
+  border-radius:50%;background:var(--gold);cursor:pointer;border:none}
+
+/* Gates */
+.gates-row{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.gate{display:flex;align-items:center;gap:3px;font-size:7px;color:var(--dim)}
+.gate-dot{width:5px;height:5px;border-radius:50%;opacity:.25;transition:all .5s}
+.gate-dot.lit{opacity:1;box-shadow:0 0 6px currentColor}
+
+/* Metrics */
+.metric-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px}
+.metric{background:rgba(10,16,24,.5);border:1px solid var(--bd);padding:7px 8px;transition:border-color .3s}
+.metric:hover{border-color:rgba(201,169,98,.12)}
+.m-label{font-size:5.5px;letter-spacing:1.5px;color:var(--dim);text-transform:uppercase;margin-bottom:1px}
+.m-value{font-size:14px;font-weight:600;line-height:1.2}
+
+/* Layer legend */
+.layer-legend{display:flex;flex-direction:column;gap:3px}
+.ll-item{display:flex;align-items:center;gap:6px;padding:3px 0;cursor:pointer;transition:opacity .2s}
+.ll-item:hover{opacity:1!important}
+.ll-dot{width:5px;height:5px;border-radius:1px;flex-shrink:0}
+.ll-name{font-size:7.5px;color:var(--text);flex:1}
+.ll-snr{font-size:6.5px;font-weight:500}
+
+/* Actions */
+.action-btns{display:grid;grid-template-columns:1fr 1fr;gap:4px}
+.action-btn{background:var(--sf);border:1px solid var(--bd);color:var(--text);padding:7px 0;
+  cursor:pointer;font:inherit;font-size:7px;letter-spacing:1.2px;text-transform:uppercase;transition:all .15s}
+.action-btn:hover{border-color:var(--gold-d);color:var(--gold)}
+.action-btn.primary{border-color:rgba(201,169,98,.2);color:var(--gold);grid-column:1/-1}
+
+/* ═══ MAIN CANVAS ═══ */
+.main{flex:1;position:relative;display:flex;align-items:center;justify-content:center}
+.main canvas{display:block}
+
+/* ═══ BOTTOM BAR ═══ */
+.bottombar{position:fixed;bottom:0;left:280px;right:0;z-index:100;height:24px;
+  background:rgba(2,4,8,.92);backdrop-filter:blur(16px);
+  border-top:1px solid rgba(20,30,48,.3);
+  display:flex;align-items:center;justify-content:center;gap:18px;
+  font-size:6.5px;letter-spacing:.4px;color:var(--dim)}
+.bb-dot{display:inline-block;width:3px;height:3px;border-radius:50%;margin-right:3px}
+.bb b{font-weight:500}
+
+/* ═══ RESPONSIVE ═══ */
+@media(max-width:768px){
+  .sidebar{width:220px;padding:0}
+  .bottombar{left:220px}
+}
+@media(max-width:600px){
+  body{flex-direction:column}
+  .sidebar{width:100%;max-height:35vh;border-right:none;border-bottom:1px solid var(--bd)}
+  .bottombar{left:0}
+}
+</style>
+</head>
+<body>
+
+<!-- ═══ SIDEBAR ═══ -->
+<div class="sidebar">
+  <div class="sb-header">
+    <div class="sb-brand">BIZRA</div>
+    <div class="sb-title">Sovereign Emergence</div>
+    <div class="sb-arabic">كل بذرة فيها لا نهاية</div>
+    <div class="sb-sub">Generative Living Proof · Ω</div>
+  </div>
+
+  <!-- SEED -->
+  <div class="sb-section">
+    <div class="sb-label">Seed</div>
+    <div class="seed-display" id="seedDisp">—</div>
+    <div class="seed-btns">
+      <button class="seed-btn" onclick="prevSeed()">◂ Prev</button>
+      <button class="seed-btn" onclick="randomSeedJump()">Random</button>
+      <button class="seed-btn" onclick="nextSeed()">Next ▸</button>
+      <button class="seed-btn" onclick="jumpSeed()">Jump</button>
+    </div>
+    <input class="seed-input" type="number" id="seedInput" placeholder="Enter seed number..." min="1">
+  </div>
+
+  <!-- PARAMETERS -->
+  <div class="sb-section">
+    <div class="sb-label">Parameters</div>
+    <div class="param"><div class="param-row"><span class="param-name">Emission Rate</span><span class="param-val" id="v-emit">3</span></div>
+      <input type="range" min="1" max="8" step="1" value="3" oninput="P.emitRate=+this.value;document.getElementById('v-emit').textContent=this.value"></div>
+    <div class="param"><div class="param-row"><span class="param-name">Particle Lifespan</span><span class="param-val" id="v-life">420</span></div>
+      <input type="range" min="120" max="800" step="20" value="420" oninput="P.lifespan=+this.value;document.getElementById('v-life').textContent=this.value"></div>
+    <div class="param"><div class="param-row"><span class="param-name">Layer Gravity</span><span class="param-val" id="v-grav">0.12</span></div>
+      <input type="range" min="0.02" max="0.30" step="0.01" value="0.12" oninput="P.layerGravity=+this.value;document.getElementById('v-grav').textContent=(+this.value).toFixed(2)"></div>
+    <div class="param"><div class="param-row"><span class="param-name">Noise Scale</span><span class="param-val" id="v-noise">0.003</span></div>
+      <input type="range" min="0.001" max="0.010" step="0.001" value="0.003" oninput="P.noiseScale=+this.value;document.getElementById('v-noise').textContent=(+this.value).toFixed(3)"></div>
+    <div class="param"><div class="param-row"><span class="param-name">Tourbillon Speed</span><span class="param-val" id="v-tour">0.004</span></div>
+      <input type="range" min="0.001" max="0.012" step="0.001" value="0.004" oninput="P.tourbillonSpeed=+this.value;document.getElementById('v-tour').textContent=(+this.value).toFixed(3)"></div>
+    <div class="param"><div class="param-row"><span class="param-name">Escape Steps</span><span class="param-val" id="v-esc">15</span></div>
+      <input type="range" min="6" max="30" step="1" value="15" oninput="P.escapeSteps=+this.value;document.getElementById('v-esc').textContent=this.value"></div>
+    <div class="param"><div class="param-row"><span class="param-name">Ihsān Threshold</span><span class="param-val" id="v-ihsan">0.95</span></div>
+      <input type="range" min="0.80" max="0.99" step="0.01" value="0.95" oninput="P.ihsanThreshold=+this.value;document.getElementById('v-ihsan').textContent=(+this.value).toFixed(2)"></div>
+  </div>
+
+  <!-- CONSTITUTIONAL GATES -->
+  <div class="sb-section">
+    <div class="sb-label">Constitutional Gates</div>
+    <div class="gates-row" id="gatesRow">
+      <div class="gate"><div class="gate-dot" id="g0" style="background:#e85a5a"></div><span>α4</span></div>
+      <div class="gate"><div class="gate-dot" id="g1" style="background:#e8a040"></div><span>α7</span></div>
+      <div class="gate"><div class="gate-dot" id="g2" style="background:#c9a962"></div><span>α8</span></div>
+      <div class="gate"><div class="gate-dot" id="g3" style="background:#5ac8d8"></div><span>α9</span></div>
+      <div class="gate"><div class="gate-dot" id="g4" style="background:#5ae89a"></div><span>α10</span></div>
+      <div class="gate"><div class="gate-dot" id="g5" style="background:#a06ae8"></div><span>Isnad</span></div>
+    </div>
+  </div>
+
+  <!-- LIVE METRICS -->
+  <div class="sb-section">
+    <div class="sb-label">Live Metrics</div>
+    <div class="metric-grid">
+      <div class="metric"><div class="m-label">Ihsān</div><div class="m-value" style="color:var(--gold)" id="mIhsan">—</div></div>
+      <div class="metric"><div class="m-label">SNR</div><div class="m-value" style="color:var(--cyan)" id="mSnr">—</div></div>
+      <div class="metric"><div class="m-label">Particles</div><div class="m-value" style="color:var(--green)" id="mParts">0</div></div>
+      <div class="metric"><div class="m-label">Receipts</div><div class="m-value" style="color:var(--orange)" id="mReceipts">0</div></div>
+      <div class="metric"><div class="m-label">Verified</div><div class="m-value" style="color:var(--green)" id="mVerified">0</div></div>
+      <div class="metric"><div class="m-label">FPS</div><div class="m-value" style="color:var(--dim)" id="mFps">—</div></div>
+    </div>
+  </div>
+
+  <!-- 7-LAYER LEGEND -->
+  <div class="sb-section">
+    <div class="sb-label">Architecture Layers</div>
+    <div class="layer-legend">
+      <div class="ll-item"><div class="ll-dot" style="background:#c9a962"></div><div class="ll-name">L1 Constitution</div><div class="ll-snr" style="color:#c9a962">0.981</div></div>
+      <div class="ll-item"><div class="ll-dot" style="background:#e8cc7a"></div><div class="ll-name">L2 Blockchain</div><div class="ll-snr" style="color:#e8cc7a">0.972</div></div>
+      <div class="ll-item"><div class="ll-dot" style="background:#e8a040"></div><div class="ll-name">L3 Intelligence</div><div class="ll-snr" style="color:#e8a040">0.964</div></div>
+      <div class="ll-item"><div class="ll-dot" style="background:#5ae89a"></div><div class="ll-name">L4 Agents</div><div class="ll-snr" style="color:#5ae89a">0.953</div></div>
+      <div class="ll-item"><div class="ll-dot" style="background:#5ac8d8"></div><div class="ll-name">L5 Economy</div><div class="ll-snr" style="color:#5ac8d8">0.971</div></div>
+      <div class="ll-item"><div class="ll-dot" style="background:#e85a5a"></div><div class="ll-name">L6 Interface</div><div class="ll-snr" style="color:#e85a5a">0.933</div></div>
+      <div class="ll-item"><div class="ll-dot" style="background:#a06ae8"></div><div class="ll-name">L7 Sovereign ID</div><div class="ll-snr" style="color:#a06ae8">0.958</div></div>
+    </div>
+  </div>
+
+  <!-- ACTIONS -->
+  <div class="sb-section">
+    <div class="sb-label">Actions</div>
+    <div class="action-btns">
+      <button class="action-btn primary" onclick="regenerate()">⟳ Regenerate</button>
+      <button class="action-btn" onclick="resetParams()">Reset</button>
+      <button class="action-btn" onclick="downloadPNG()">PNG ↓</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ MAIN CANVAS ═══ -->
+<div class="main" id="canvasContainer"></div>
+
+<!-- ═══ BOTTOM BAR ═══ -->
+<div class="bottombar">
+  <div class="bb"><span class="bb-dot" style="background:var(--gold)"></span>NODE₀ <b style="color:var(--gold)">ACTIVE</b></div>
+  <div class="bb"><span class="bb-dot" style="background:var(--green)"></span>LAYERS <b style="color:var(--green)">7/7</b></div>
+  <div class="bb"><span class="bb-dot" style="background:var(--cyan)"></span>TOPOLOGY <b style="color:var(--cyan)">STAR</b></div>
+  <div class="bb"><span class="bb-dot" style="background:var(--purple)"></span>BINARY <b style="color:var(--purple)">929KB</b></div>
+  <div class="bb">DUBAI · GMT+4</div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+// BIZRA — SOVEREIGN EMERGENCE
+// ═══════════════════════════════════════════════════════════════
+// Synthesis of: Sacred Geometry + Watchmaker Precision +
+//   Organic Phyllotaxis + Force-Directed Architecture +
+//   Constitutional Verification
+// Standing on: p5.js (Shiffman), all 5 BIZRA artifacts (Mumo)
+// Every parameter discovered through 15,000 hours of labor.
+// ═══════════════════════════════════════════════════════════════
+
+const GOLDEN_ANGLE = 137.50776405;
+const PHI = (1 + Math.sqrt(5)) / 2;
+const TAU = Math.PI * 2;
+
+// 7-layer colors (innermost to outermost)
+const LAYER_COLORS = [
+  [201,169,98],   // L1 Constitution (gold)
+  [232,204,122],  // L2 Blockchain (bright gold)
+  [232,160,64],   // L3 Intelligence (amber)
+  [90,232,154],   // L4 Agents (green)
+  [90,200,216],   // L5 Economy (cyan)
+  [232,90,90],    // L6 Interface (red)
+  [160,106,232]   // L7 Sovereign Identity (purple)
+];
+
+// Petal tip positions (Seed of Life geometry, normalized 0-1)
+const PETAL_ANGLES = [0, 60, 120, 180, 240, 300].map(d => d * Math.PI / 180);
+
+// Parameters
+let P = {
+  seed: 2023,
+  emitRate: 3,
+  lifespan: 420,
+  layerGravity: 0.12,
+  noiseScale: 0.003,
+  tourbillonSpeed: 0.004,
+  escapeSteps: 15,
+  ihsanThreshold: 0.95,
+  maxParticles: 600,
+  seedRadius: 0.06,
+  layerSpacing: 0.055
+};
+
+let particles = [];
+let receipts = 0;
+let verified = 0;
+let tourbillonAngle = 0;
+let escapeAngle = 0;
+let escapeAccum = 0;
+let breathPhase = 0;
+let gatesLit = 0;
+let gateTimer = 0;
+let cx, cy, unit;
+let pg; // offscreen graphics for trails
+
+// ── PARTICLE CLASS ──
+class Particle {
+  constructor(x, y, angle, layer) {
+    this.x = x;
+    this.y = y;
+    this.angle = angle;
+    this.layer = layer; // 0-6
+    this.targetRadius = (P.seedRadius + (layer + 1) * P.layerSpacing) * unit;
+    this.vx = 0;
+    this.vy = 0;
+    this.age = 0;
+    this.maxAge = P.lifespan + (random() - 0.5) * 60;
+    this.receipted = false;
+    this.verified = false;
+    this.trail = [];
+    this.noiseOff = random(1000);
+    this.size = 1.2 + random() * 0.8;
+    this.ihsan = 0.85 + random() * 0.14;
+  }
+
+  update() {
+    this.age++;
+    // Radial force toward target orbit
+    let dx = this.x - cx;
+    let dy = this.y - cy;
+    let dist = Math.sqrt(dx * dx + dy * dy) || 1;
+    let targetR = this.targetRadius;
+    let radialForce = (targetR - dist) * P.layerGravity * 0.1;
+    // Tangential orbit force
+    let tangent = Math.atan2(dy, dx) + Math.PI * 0.5;
+    let orbitSpeed = 0.3 + this.layer * 0.08;
+    // Perlin noise perturbation
+    let n = noise(this.x * P.noiseScale, this.y * P.noiseScale, frameCount * 0.002 + this.noiseOff);
+    let noiseAngle = n * TAU * 2;
+    // Accumulate forces
+    this.vx += Math.cos(Math.atan2(dy, dx)) * radialForce;
+    this.vy += Math.sin(Math.atan2(dy, dx)) * radialForce;
+    this.vx += Math.cos(tangent) * orbitSpeed * 0.15;
+    this.vy += Math.sin(tangent) * orbitSpeed * 0.15;
+    this.vx += Math.cos(noiseAngle) * 0.08;
+    this.vy += Math.sin(noiseAngle) * 0.08;
+    // Damping
+    this.vx *= 0.95;
+    this.vy *= 0.95;
+    this.x += this.vx;
+    this.y += this.vy;
+    // Trail
+    if (this.age % 2 === 0) {
+      this.trail.push({x: this.x, y: this.y});
+      if (this.trail.length > 40) this.trail.shift();
+    }
+    // Constitutional receipt at gate crossing
+    if (!this.receipted && this.age > 30 && dist > targetR * 0.7) {
+      this.receipted = true;
+      receipts++;
+    }
+    // Verification (ihsan check)
+    if (this.receipted && !this.verified && this.ihsan >= P.ihsanThreshold) {
+      this.verified = true;
+      verified++;
+    }
+    return this.age < this.maxAge;
+  }
+
+  draw() {
+    let col = LAYER_COLORS[this.layer];
+    let lifeFrac = this.age / this.maxAge;
+    let fade = lifeFrac < 0.1 ? lifeFrac / 0.1 : lifeFrac > 0.85 ? (1 - lifeFrac) / 0.15 : 1;
+    let lum = this.verified ? 1.0 : (this.ihsan >= P.ihsanThreshold ? 0.8 : 0.35);
+    let alpha = fade * lum;
+    // Trail on offscreen buffer
+    if (pg && this.trail.length > 2) {
+      pg.noFill();
+      pg.strokeWeight(0.3);
+      pg.stroke(col[0], col[1], col[2], 4 * fade);
+      pg.beginShape();
+      for (let t of this.trail) pg.vertex(t.x, t.y);
+      pg.endShape();
+    }
+    // Particle core
+    noStroke();
+    fill(col[0], col[1], col[2], alpha * 220);
+    circle(this.x, this.y, this.size * (this.verified ? 2.2 : 1.5));
+    // Verified halo
+    if (this.verified) {
+      noFill();
+      stroke(col[0], col[1], col[2], alpha * 40);
+      strokeWeight(0.4);
+      circle(this.x, this.y, this.size * 5);
+    }
+  }
+}
+
+// ── P5 SETUP ──
+function setup() {
+  let container = document.getElementById('canvasContainer');
+  let w = container.offsetWidth;
+  let h = container.offsetHeight - 24;
+  let c = createCanvas(w, h);
+  c.parent('canvasContainer');
+  pg = createGraphics(w, h);
+  pg.clear();
+  cx = w / 2;
+  cy = h / 2;
+  unit = min(w, h);
+  randomSeed(P.seed);
+  noiseSeed(P.seed);
+  colorMode(RGB, 255, 255, 255, 255);
+  textFont('IBM Plex Mono');
+  document.getElementById('seedDisp').textContent = P.seed;
+}
+
+// ── P5 DRAW ──
+function draw() {
+  background(2, 4, 8, 28); // Slow fade for trail persistence
+
+  // Draw accumulated trail buffer
+  if (pg) {
+    tint(255, 252);
+    image(pg, 0, 0);
+    noTint();
+    // Slow fade of trail buffer
+    pg.fill(2, 4, 8, 3);
+    pg.noStroke();
+    pg.rect(0, 0, pg.width, pg.height);
+  }
+
+  // ── LAYER RINGS ──
+  noFill();
+  for (let i = 0; i < 7; i++) {
+    let r = (P.seedRadius + (i + 1) * P.layerSpacing) * unit;
+    let col = LAYER_COLORS[i];
+    let breath = sin(breathPhase + i * 0.3) * 0.02 + 0.04;
+    strokeWeight(0.35);
+    stroke(col[0], col[1], col[2], breath * 255);
+    circle(cx, cy, r * 2);
+  }
+
+  // ── SEED OF LIFE ──
+  let seedR = P.seedRadius * unit;
+  strokeWeight(0.3);
+  // Central circle
+  stroke(201, 169, 98, 20);
+  noFill();
+  circle(cx, cy, seedR * 2);
+  // 6 surrounding circles
+  for (let i = 0; i < 6; i++) {
+    let a = PETAL_ANGLES[i] + tourbillonAngle * 0.1;
+    let sx = cx + cos(a) * seedR;
+    let sy = cy + sin(a) * seedR;
+    stroke(201, 169, 98, 14);
+    circle(sx, sy, seedR * 2);
+  }
+
+  // ── PETALS (flower intersections) ──
+  for (let i = 0; i < 6; i++) {
+    let a1 = PETAL_ANGLES[i] + tourbillonAngle * 0.1;
+    let a2 = PETAL_ANGLES[(i + 1) % 6] + tourbillonAngle * 0.1;
+    let x1 = cx + cos(a1) * seedR;
+    let y1 = cy + sin(a1) * seedR;
+    let x2 = cx + cos(a2) * seedR;
+    let y2 = cy + sin(a2) * seedR;
+    strokeWeight(0.6);
+    stroke(201, 169, 98, 30 + sin(breathPhase + i) * 12);
+    noFill();
+    bezier(x1, y1,
+      cx + cos(a1) * seedR * 0.3, cy + sin(a1) * seedR * 0.3,
+      cx + cos(a2) * seedR * 0.3, cy + sin(a2) * seedR * 0.3,
+      x2, y2);
+  }
+
+  // ── JEWEL BEARINGS (petal tips) ──
+  for (let i = 0; i < 6; i++) {
+    let a = PETAL_ANGLES[i] + tourbillonAngle * 0.1;
+    let jx = cx + cos(a) * seedR;
+    let jy = cy + sin(a) * seedR;
+    fill(232, 90, 90, 140 + sin(breathPhase * 2 + i) * 40);
+    noStroke();
+    circle(jx, jy, 2.5);
+    // Jewel ring
+    noFill();
+    stroke(232, 90, 90, 30);
+    strokeWeight(0.3);
+    circle(jx, jy, 6);
+  }
+
+  // ── ESCAPE WHEEL ──
+  push();
+  translate(cx, cy);
+  rotate(escapeAngle);
+  let escR = seedR * 0.65;
+  for (let i = 0; i < P.escapeSteps; i++) {
+    let a = (i / P.escapeSteps) * TAU;
+    let x1 = cos(a) * escR * 0.85;
+    let y1 = sin(a) * escR * 0.85;
+    let x2 = cos(a) * escR;
+    let y2 = sin(a) * escR;
+    strokeWeight(0.4);
+    stroke(201, 169, 98, 35);
+    line(x1, y1, x2, y2);
+  }
+  pop();
+
+  // ── TOURBILLON CAGE ──
+  push();
+  translate(cx, cy);
+  rotate(tourbillonAngle);
+  noFill();
+  strokeWeight(0.15);
+  stroke(201, 169, 98, 14);
+  let tR = (P.seedRadius + 7.5 * P.layerSpacing) * unit;
+  drawingContext.setLineDash([1.5, 5]);
+  circle(0, 0, tR * 2);
+  drawingContext.setLineDash([1, 7]);
+  stroke(201, 169, 98, 8);
+  circle(0, 0, tR * 2.06);
+  drawingContext.setLineDash([]);
+  pop();
+
+  // ── CONNECTION LINES (center → layer regions) ──
+  for (let i = 0; i < 7; i++) {
+    let a = (i / 7) * TAU - Math.PI / 2;
+    let r = (P.seedRadius + (i + 1) * P.layerSpacing) * unit;
+    let ex = cx + cos(a) * r;
+    let ey = cy + sin(a) * r;
+    strokeWeight(0.2);
+    stroke(LAYER_COLORS[i][0], LAYER_COLORS[i][1], LAYER_COLORS[i][2], 10);
+    drawingContext.setLineDash([2, 6]);
+    line(cx, cy, ex, ey);
+    drawingContext.setLineDash([]);
+  }
+
+  // ── NUQTA (central diamond) ──
+  let nuqtaSize = 4 + sin(breathPhase * 0.7) * 1;
+  push();
+  translate(cx, cy);
+  rotate(PI / 4);
+  fill(201, 169, 98, 230);
+  noStroke();
+  rectMode(CENTER);
+  rect(0, 0, nuqtaSize, nuqtaSize, 0.6);
+  // Nuqta glow
+  noFill();
+  for (let g = 1; g <= 3; g++) {
+    stroke(201, 169, 98, 20 / g);
+    strokeWeight(0.3 * g);
+    rect(0, 0, nuqtaSize + g * 5, nuqtaSize + g * 5, 1);
+  }
+  pop();
+
+  // ── CASEBACK ENGRAVINGS ──
+  textAlign(CENTER);
+  textSize(5.5);
+  fill(201, 169, 98, 18);
+  noStroke();
+  let engR = tR + 8;
+  // Top engraving (arc text simulation — just horizontal for clarity)
+  text('SOVEREIGN AI INFRASTRUCTURE · DDAGI OS · NODE₀', cx, cy - engR);
+  text('929KB · 8172 TESTS · <1μs FINALITY · 77K PoI/SEC · ZERO DEPS', cx, cy + engR + 6);
+
+  // ── EMIT PARTICLES (golden angle phyllotaxis) ──
+  if (particles.length < P.maxParticles && frameCount % max(1, 5 - P.emitRate) === 0) {
+    for (let e = 0; e < P.emitRate; e++) {
+      let idx = particles.length + receipts + e;
+      let angle = idx * GOLDEN_ANGLE * PI / 180;
+      let layer = idx % 7;
+      let emitR = 3;
+      let px = cx + cos(angle) * emitR;
+      let py = cy + sin(angle) * emitR;
+      particles.push(new Particle(px, py, angle, layer));
+    }
+  }
+
+  // ── UPDATE & DRAW PARTICLES ──
+  for (let i = particles.length - 1; i >= 0; i--) {
+    if (!particles[i].update()) {
+      particles.splice(i, 1);
+    } else {
+      particles[i].draw();
+    }
+  }
+
+  // ── MECHANICS ──
+  tourbillonAngle += P.tourbillonSpeed;
+  escapeAccum += P.tourbillonSpeed * 3;
+  if (escapeAccum > TAU / P.escapeSteps) {
+    escapeAngle += TAU / P.escapeSteps;
+    escapeAccum = 0;
+  }
+  breathPhase += 0.015;
+
+  // ── GATE LIGHTING ──
+  gateTimer++;
+  if (gatesLit < 6 && gateTimer > 60 + gatesLit * 45) {
+    document.getElementById('g' + gatesLit).classList.add('lit');
+    gatesLit++;
+  }
+
+  // ── UPDATE METRICS ──
+  if (frameCount % 15 === 0) {
+    let avgIhsan = particles.length > 0
+      ? particles.reduce((s, p) => s + p.ihsan, 0) / particles.length : 0;
+    let snr = 0.933 + sin(frameCount * 0.01) * 0.004;
+    document.getElementById('mIhsan').textContent = avgIhsan.toFixed(3);
+    document.getElementById('mSnr').textContent = snr.toFixed(4);
+    document.getElementById('mParts').textContent = particles.length;
+    document.getElementById('mReceipts').textContent = receipts;
+    document.getElementById('mVerified').textContent = verified;
+    document.getElementById('mFps').textContent = Math.round(frameRate());
+  }
+}
+
+// ── SEED NAVIGATION ──
+function setSeed(s) {
+  P.seed = s;
+  randomSeed(s);
+  noiseSeed(s);
+  particles = [];
+  receipts = 0;
+  verified = 0;
+  gatesLit = 0;
+  gateTimer = 0;
+  document.querySelectorAll('.gate-dot').forEach(d => d.classList.remove('lit'));
+  if (pg) { pg.clear(); }
+  document.getElementById('seedDisp').textContent = s;
+  document.getElementById('seedInput').value = '';
+}
+
+function prevSeed() { setSeed(P.seed - 1); }
+function nextSeed() { setSeed(P.seed + 1); }
+function randomSeedJump() { setSeed(Math.floor(Math.random() * 99999) + 1); }
+function jumpSeed() {
+  let v = parseInt(document.getElementById('seedInput').value);
+  if (v && v > 0) setSeed(v);
+}
+function regenerate() { setSeed(P.seed); }
+
+function resetParams() {
+  P.emitRate=3; P.lifespan=420; P.layerGravity=0.12;
+  P.noiseScale=0.003; P.tourbillonSpeed=0.004; P.escapeSteps=15; P.ihsanThreshold=0.95;
+  document.querySelectorAll('.param input[type="range"]').forEach(s => {
+    s.dispatchEvent(new Event('input'));
+  });
+  regenerate();
+}
+
+function downloadPNG() {
+  saveCanvas('bizra-sovereign-emergence-' + P.seed, 'png');
+}
+
+// ── CLICK TO SEED ──
+function mousePressed() {
+  let container = document.getElementById('canvasContainer');
+  let rect = container.getBoundingClientRect();
+  let mx = mouseX, my = mouseY;
+  if (mx > 0 && mx < width && my > 0 && my < height) {
+    // Spawn burst of particles at click point
+    for (let i = 0; i < 12; i++) {
+      let angle = i * GOLDEN_ANGLE * PI / 180;
+      let layer = i % 7;
+      particles.push(new Particle(mx, my, angle, layer));
+    }
+  }
+}
+
+// ── RESIZE ──
+function windowResized() {
+  let container = document.getElementById('canvasContainer');
+  let w = container.offsetWidth;
+  let h = container.offsetHeight - 24;
+  resizeCanvas(w, h);
+  if (pg) { pg.remove(); pg = createGraphics(w, h); pg.clear(); }
+  cx = w / 2;
+  cy = h / 2;
+  unit = min(w, h);
+}
+
+// ── KEYBOARD ──
+document.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT') return;
+  if (e.key === 'ArrowRight') nextSeed();
+  if (e.key === 'ArrowLeft') prevSeed();
+  if (e.key === 'r') randomSeedJump();
+  if (e.key === 's') downloadPNG();
+});
+</script>
+</body>
+</html>

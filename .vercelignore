@@ -1,0 +1,17 @@
+node_modules
+.next
+bizra-genesis-node
+BIZRA-Unified-Windows-Installer
+coverage
+playwright-report
+test-results
+.docker
+deploy/k8s/**/secrets
+ollama
+ollama-extracted
+*.pdf
+*.dll
+*.exe
+*.zip
+*.log
+.git
