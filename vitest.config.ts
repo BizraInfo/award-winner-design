@@ -43,6 +43,10 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, '.'),
+      // Mock redis for unit tests — token-store.ts uses dynamic import('redis')
+      // which Vite tries to resolve at build time. MemoryTokenStore is the
+      // correct fallback for non-production environments.
+      'redis': path.resolve(__dirname, './tests/unit/mocks/redis.ts'),
     },
   },
 })
