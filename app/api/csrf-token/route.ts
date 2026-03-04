@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
   
   // Store hash in server-side session or separate cookie for verification
   response.cookies.set(
-    `${DEFAULT_CSRF_CONFIG.cookieName}_hash`,
+    DEFAULT_CSRF_CONFIG.hashCookieName,
     tokenHash,
     {
       httpOnly: true,
@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
   // Validate CSRF token for state-changing operations
   const csrfHeader = request.headers.get(DEFAULT_CSRF_CONFIG.headerName);
   const csrfCookie = request.cookies.get(DEFAULT_CSRF_CONFIG.cookieName)?.value;
-  const csrfHashCookie = request.cookies.get(`${DEFAULT_CSRF_CONFIG.cookieName}_hash`)?.value;
+  const csrfHashCookie = request.cookies.get(DEFAULT_CSRF_CONFIG.hashCookieName)?.value;
   
   if (!csrfHeader || !csrfCookie || !csrfHashCookie) {
     return NextResponse.json(

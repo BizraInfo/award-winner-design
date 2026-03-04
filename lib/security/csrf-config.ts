@@ -8,6 +8,7 @@
 export interface CSRFConfig {
   tokenLength: number;
   cookieName: string;
+  hashCookieName: string;
   headerName: string;
   cookieOptions: {
     httpOnly: boolean;
@@ -21,6 +22,7 @@ export interface CSRFConfig {
 export const DEFAULT_CSRF_CONFIG: CSRFConfig = {
   tokenLength: 32,
   cookieName: '__Host-bizra-csrf',
+  hashCookieName: '__Host-bizra-csrf_hash',
   headerName: 'X-CSRF-Token',
   cookieOptions: {
     // IMPORTANT: httpOnly must be FALSE for double-submit cookie pattern

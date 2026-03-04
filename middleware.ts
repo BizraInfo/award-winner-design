@@ -1,11 +1,29 @@
+/**
+ * Next.js API Middleware — Edge Runtime
+ *
+ * Architecture note: This file runs at the Edge Runtime which does NOT
+ * support Node.js built-in modules (crypto, fs, etc.) or packages that
+ * depend on them. Therefore:
+ *
+ * - JWT verification uses `jose` directly (Edge-compatible) instead of
+ *   importing from `lib/security/api-auth.ts` which pulls in `token-store.ts`
+ *   → `redis` (Node-only).
+ *
+ * - CSRF validation uses Web Crypto API (`crypto.subtle.digest`) instead of
+ *   importing from `lib/security/csrf-server.ts` which uses Node.js `crypto`
+ *   (`crypto.timingSafeEqual`, `crypto.createHash`).
+ *
+ * - Rate limiting is implemented inline with a Map store instead of importing
+ *   from `lib/rate-limit/` which may use Node.js APIs.
+ *
+ * CSRF config is imported from `csrf-config.ts` (runtime-agnostic, pure data).
+ */
 import { jwtVerify, type JWTPayload } from 'jose';
 import { NextRequest, NextResponse } from 'next/server';
+import { DEFAULT_CSRF_CONFIG } from '@/lib/security/csrf-config';
 
 const API_PREFIX = '/api/';
 const ACCESS_TOKEN_COOKIE = 'access_token';
-const CSRF_COOKIE = '__Host-bizra-csrf';
-const CSRF_HASH_COOKIE = '__Host-bizra-csrf_hash';
-const CSRF_HEADER = 'x-csrf-token';
 
 const PUBLIC_API_PATHS = new Set<string>([
   '/api/auth/login',
@@ -142,9 +160,9 @@ async function verifyAccessToken(token: string): Promise<JWTPayload | null> {
 }
 
 async function validateCsrf(req: NextRequest): Promise<boolean> {
-  const headerToken = req.headers.get(CSRF_HEADER);
-  const cookieToken = req.cookies.get(CSRF_COOKIE)?.value;
-  const cookieHash = req.cookies.get(CSRF_HASH_COOKIE)?.value;
+  const headerToken = req.headers.get(DEFAULT_CSRF_CONFIG.headerName);
+  const cookieToken = req.cookies.get(DEFAULT_CSRF_CONFIG.cookieName)?.value;
+  const cookieHash = req.cookies.get(DEFAULT_CSRF_CONFIG.hashCookieName)?.value;
 
   if (!headerToken || !cookieToken) {
     return false;
