@@ -1,0 +1,142 @@
+# =============================================================================
+# DOCKER COMPOSE - Local Development & Testing Environment
+# =============================================================================
+# Provides production-parity development environment with:
+# - Hot-reload development server
+# - Production simulation mode
+# - Integrated monitoring stack (optional)
+# =============================================================================
+
+services:
+  # ===========================================================================
+  # DEVELOPMENT SERVER
+  # ===========================================================================
+  dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/.next
+    environment:
+      - NODE_ENV=development
+      - WATCHPACK_POLLING=true
+    command: pnpm dev
+    profiles:
+      - dev
+
+  # ===========================================================================
+  # PRODUCTION BUILD (Local Testing)
+  # ===========================================================================
+  production:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - NEXT_PUBLIC_APP_VERSION=${APP_VERSION:-0.0.0}
+        - NEXT_PUBLIC_BUILD_ID=${BUILD_ID:-local}
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+    profiles:
+      - prod
+
+  # ===========================================================================
+  # NGINX REVERSE PROXY (Production Simulation)
+  # ===========================================================================
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./deploy/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./deploy/nginx/ssl:/etc/nginx/ssl:ro
+    depends_on:
+      production:
+        condition: service_healthy
+    profiles:
+      - prod-full
+
+  # ===========================================================================
+  # MONITORING STACK (Optional)
+  # ===========================================================================
+  
+  # Prometheus for metrics collection
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./deploy/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.enable-lifecycle'
+    profiles:
+      - monitoring
+
+  # Grafana for dashboards
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3001:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./deploy/grafana/provisioning:/etc/grafana/provisioning:ro
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    depends_on:
+      - prometheus
+    profiles:
+      - monitoring
+
+# =============================================================================
+# VOLUMES
+# =============================================================================
+volumes:
+  prometheus_data:
+  grafana_data:
+
+# =============================================================================
+# NETWORKS
+# =============================================================================
+networks:
+  default:
+    name: bizra-network
+    driver: bridge
+
+# =============================================================================
+# USAGE INSTRUCTIONS
+# =============================================================================
+# Development:
+#   docker compose --profile dev up
+#
+# Production (local test):
+#   docker compose --profile prod up --build
+#
+# Production with Nginx:
+#   docker compose --profile prod-full up --build
+#
+# With Monitoring:
+#   docker compose --profile prod --profile monitoring up --build
+#
+# Build only:
+#   docker compose build production
+#
+# Clean up:
+#   docker compose down -v
+# =============================================================================

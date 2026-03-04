@@ -1,0 +1,8 @@
+# BIZRA Genesis - Staging Namespace
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: staging
+  labels:
+    environment: staging
+    app: bizra-genesis

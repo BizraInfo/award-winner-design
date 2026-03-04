@@ -1,0 +1,372 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: '20'
+  PNPM_VERSION: '8'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ============================================================================
+  # STAGE 1: Lint & Type Check
+  # ============================================================================
+  lint:
+    name: Lint & Type Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run ESLint
+        run: pnpm lint
+
+      - name: TypeScript Check
+        run: pnpm exec tsc --noEmit
+
+  # ============================================================================
+  # STAGE 2: Unit Tests
+  # ============================================================================
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run Unit Tests
+        run: pnpm test:unit --coverage
+
+      - name: Upload Coverage
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-report
+          path: coverage/
+          retention-days: 7
+
+  # ============================================================================
+  # STAGE 3: E2E Tests (Playwright)
+  # ============================================================================
+  e2e-tests:
+    name: E2E Tests
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright Browsers
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Build Application
+        run: pnpm build
+
+      - name: Run Playwright Tests
+        run: pnpm test:e2e
+
+      - name: Upload Playwright Report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
+
+  # ============================================================================
+  # STAGE 4: Lighthouse CI
+  # ============================================================================
+  lighthouse:
+    name: Lighthouse Performance Audit
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build Application
+        run: pnpm build
+
+      - name: Run Lighthouse CI
+        run: |
+          npm install -g @lhci/cli@0.13.x
+          lhci autorun
+        env:
+          LHCI_GITHUB_APP_TOKEN: ${{ secrets.LHCI_GITHUB_APP_TOKEN }}
+
+      - name: Upload Lighthouse Report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: lighthouse-report
+          path: .lighthouseci/
+          retention-days: 7
+
+  # ============================================================================
+  # STAGE 5: k6 Smoke Tests
+  # ============================================================================
+  k6-smoke:
+    name: k6 Performance Smoke Test
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup k6
+        uses: grafana/setup-k6-action@v1
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build Application
+        run: pnpm build
+
+      - name: Start Server
+        run: |
+          pnpm start &
+          sleep 10
+        env:
+          PORT: 3000
+
+      - name: Run k6 Smoke Test
+        run: |
+          if [ -f tests/k6/smoke.js ]; then
+            k6 run tests/k6/smoke.js --out json=k6-results.json
+          else
+            echo "No k6 smoke test found, skipping"
+          fi
+
+      - name: Upload k6 Results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: k6-results
+          path: k6-results.json
+          retention-days: 7
+
+  # ============================================================================
+  # STAGE 6: Build & Bundle Analysis
+  # ============================================================================
+  build:
+    name: Build & Bundle Analysis
+    runs-on: ubuntu-latest
+    needs: [lint, unit-tests]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build Application
+        run: pnpm build
+        env:
+          ANALYZE: true
+
+      - name: Analyze Bundle Size
+        run: |
+          echo "## 📦 Bundle Analysis" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ -d ".next" ]; then
+            echo "### Build Output Size" >> $GITHUB_STEP_SUMMARY
+            du -sh .next/ >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### Page Sizes" >> $GITHUB_STEP_SUMMARY
+            find .next/static -name "*.js" -exec du -h {} \; | sort -rh | head -20 >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Check Bundle Budget
+        run: |
+          # Check if main bundle exceeds 300kb gzipped - FAIL if over budget
+          MAIN_SIZE=$(find .next/static/chunks -name "main-*.js" -exec gzip -c {} \; 2>/dev/null | wc -c || echo "0")
+          MAIN_SIZE_KB=$((MAIN_SIZE / 1024))
+          echo "Main bundle gzipped size: ${MAIN_SIZE_KB}kb"
+          if [ "$MAIN_SIZE_KB" -gt 300 ]; then
+            echo "❌ ERROR: Main bundle exceeds 300kb budget (${MAIN_SIZE_KB}kb)"
+            exit 1
+          else
+            echo "✅ Main bundle within budget (${MAIN_SIZE_KB}kb < 300kb)"
+          fi
+
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-output
+          path: |
+            .next/
+            !.next/cache/
+          retention-days: 7
+
+  # ============================================================================
+  # STAGE 7: Security & SBOM
+  # ============================================================================
+  security:
+    name: Security Scan & SBOM
+    runs-on: ubuntu-latest
+    needs: lint
+    permissions:
+      security-events: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run npm audit
+        run: pnpm audit --audit-level high
+
+      - name: Run Trivy Vulnerability Scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          severity: 'CRITICAL,HIGH'
+
+      - name: Upload Trivy Results
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+      - name: Run Gitleaks Secret Scan
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Generate SBOM
+        uses: anchore/sbom-action@v0
+        with:
+          path: '.'
+          format: 'cyclonedx-json'
+          output-file: 'sbom.json'
+
+      - name: Upload SBOM
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom
+          path: sbom.json
+          retention-days: 30
+
+  # ============================================================================
+  # FINAL: Summary Report
+  # ============================================================================
+  summary:
+    name: Pipeline Summary
+    runs-on: ubuntu-latest
+    needs: [lint, unit-tests, e2e-tests, lighthouse, k6-smoke, build, security]
+    if: always()
+    steps:
+      - name: Generate Summary
+        run: |
+          echo "# 🚀 CI Pipeline Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Stage | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Lint & Type Check | ${{ needs.lint.result == 'success' && '✅' || '❌' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Unit Tests | ${{ needs.unit-tests.result == 'success' && '✅' || '⚠️' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| E2E Tests | ${{ needs.e2e-tests.result == 'success' && '✅' || '⚠️' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Lighthouse | ${{ needs.lighthouse.result == 'success' && '✅' || '⚠️' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| k6 Smoke | ${{ needs.k6-smoke.result == 'success' && '✅' || '⚠️' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Build | ${{ needs.build.result == 'success' && '✅' || '❌' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Security | ${{ needs.security.result == 'success' && '✅' || '⚠️' }} |" >> $GITHUB_STEP_SUMMARY

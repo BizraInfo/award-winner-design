@@ -1,0 +1,257 @@
+# BIZRA Genesis - Production Blue-Green Deployment
+# Blue deployment (current stable)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bizra-frontend-blue
+  namespace: production
+  labels:
+    app: bizra-frontend
+    version: blue
+    environment: production
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: bizra-frontend
+      version: blue
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: bizra-frontend
+        version: blue
+        environment: production
+    spec:
+      containers:
+        - name: bizra-frontend
+          image: ghcr.io/bizrainfo/bizra-genesis-node:stable
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 3000
+              name: http
+          env:
+            - name: NODE_ENV
+              value: "production"
+            - name: NEXT_PUBLIC_APP_URL
+              value: "https://bizra.io"
+          envFrom:
+            - secretRef:
+                name: bizra-secrets
+          resources:
+            requests:
+              cpu: "200m"
+              memory: "512Mi"
+            limits:
+              cpu: "1000m"
+              memory: "1Gi"
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: 3000
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: 3000
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+      imagePullSecrets:
+        - name: ghcr-secret
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: app
+                      operator: In
+                      values:
+                        - bizra-frontend
+                topologyKey: kubernetes.io/hostname
+---
+# Green deployment (new version for blue-green)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bizra-frontend-green
+  namespace: production
+  labels:
+    app: bizra-frontend
+    version: green
+    environment: production
+spec:
+  replicas: 0  # Start with 0, scale up during deployment
+  selector:
+    matchLabels:
+      app: bizra-frontend
+      version: green
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: bizra-frontend
+        version: green
+        environment: production
+    spec:
+      containers:
+        - name: bizra-frontend
+          image: ghcr.io/bizrainfo/bizra-genesis-node:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 3000
+              name: http
+          env:
+            - name: NODE_ENV
+              value: "production"
+            - name: NEXT_PUBLIC_APP_URL
+              value: "https://bizra.io"
+          envFrom:
+            - secretRef:
+                name: bizra-secrets
+          resources:
+            requests:
+              cpu: "200m"
+              memory: "512Mi"
+            limits:
+              cpu: "1000m"
+              memory: "1Gi"
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: 3000
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: 3000
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+      imagePullSecrets:
+        - name: ghcr-secret
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: app
+                      operator: In
+                      values:
+                        - bizra-frontend
+                topologyKey: kubernetes.io/hostname
+---
+# Service - points to blue by default
+apiVersion: v1
+kind: Service
+metadata:
+  name: bizra-frontend
+  namespace: production
+  labels:
+    app: bizra-frontend
+spec:
+  type: ClusterIP
+  ports:
+    - port: 80
+      targetPort: 3000
+      protocol: TCP
+      name: http
+  selector:
+    app: bizra-frontend
+    version: blue  # Switch to 'green' during deployment
+---
+# Horizontal Pod Autoscaler - Blue
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: bizra-frontend-blue-hpa
+  namespace: production
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: bizra-frontend-blue
+  minReplicas: 3
+  maxReplicas: 10
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80
+---
+# Horizontal Pod Autoscaler - Green
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: bizra-frontend-green-hpa
+  namespace: production
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: bizra-frontend-green
+  minReplicas: 3
+  maxReplicas: 10
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80
+---
+# Pod Disruption Budget
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: bizra-frontend-pdb
+  namespace: production
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app: bizra-frontend

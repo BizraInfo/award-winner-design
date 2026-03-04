@@ -1,0 +1,1214 @@
+openapi: 3.1.0
+info:
+  title: BIZRA Node0 Genesis API
+  description: |
+    # BIZRA Node0 Genesis - Enterprise AI Platform API
+
+    The BIZRA Node0 Genesis API provides a comprehensive interface for interacting with
+    the enterprise AI platform. This API enables:
+
+    - **AI Query Processing**: Submit queries to LLM backends (Ollama, LM Studio)
+    - **User Management**: Authentication, authorization, and session management
+    - **Knowledge Graph**: Interact with the Neo4j-based knowledge graph
+    - **Vector Search**: Semantic search using Qdrant vector database
+    - **System Monitoring**: Health checks, metrics, and status endpoints
+
+    ## Authentication
+
+    All API endpoints (except health and public endpoints) require authentication via:
+    - Bearer token in the `Authorization` header
+    - API key in the `X-API-Key` header
+
+    ## Rate Limiting
+
+    API requests are rate-limited to ensure fair usage:
+    - Standard tier: 100 requests/minute
+    - Premium tier: 1000 requests/minute
+    - Enterprise tier: Unlimited (subject to fair use policy)
+
+    ## Versioning
+
+    The API is versioned via URL path (`/api/v1`). Breaking changes will result in a new version.
+    Deprecated endpoints will be supported for at least 6 months after deprecation notice.
+
+  version: 1.0.0
+  contact:
+    name: BIZRA Engineering Team
+    email: engineering@bizra.io
+    url: https://bizra.io
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+  x-logo:
+    url: https://bizra.io/logo.png
+    altText: BIZRA Logo
+
+servers:
+  - url: http://localhost:8080
+    description: Local development server
+  - url: https://api.staging.bizra.io
+    description: Staging environment
+  - url: https://api.bizra.io
+    description: Production environment
+
+tags:
+  - name: Health
+    description: System health and status endpoints
+  - name: Authentication
+    description: User authentication and session management
+  - name: Query
+    description: AI query processing and LLM interaction
+  - name: Users
+    description: User management operations
+  - name: Knowledge Graph
+    description: Neo4j knowledge graph operations
+  - name: Vector Search
+    description: Qdrant vector search operations
+  - name: Cache
+    description: Redis cache operations
+  - name: Metrics
+    description: System metrics and observability
+
+paths:
+  /health:
+    get:
+      tags:
+        - Health
+      summary: Health check
+      description: Returns the overall health status of the system
+      operationId: getHealth
+      security: []
+      responses:
+        '200':
+          description: System is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+              example:
+                status: healthy
+                version: 1.0.0
+                timestamp: '2024-01-15T10:30:00Z'
+                services:
+                  database: healthy
+                  redis: healthy
+                  llm: healthy
+        '503':
+          description: System is unhealthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+
+  /health/ready:
+    get:
+      tags:
+        - Health
+      summary: Readiness check
+      description: Indicates if the service is ready to accept traffic (Kubernetes readiness probe)
+      operationId: getReadiness
+      security: []
+      responses:
+        '200':
+          description: Service is ready
+        '503':
+          description: Service is not ready
+
+  /health/live:
+    get:
+      tags:
+        - Health
+      summary: Liveness check
+      description: Indicates if the service is alive (Kubernetes liveness probe)
+      operationId: getLiveness
+      security: []
+      responses:
+        '200':
+          description: Service is alive
+        '503':
+          description: Service is not alive
+
+  /api/v1/status:
+    get:
+      tags:
+        - Health
+      summary: Detailed system status
+      description: Returns detailed status information about all system components
+      operationId: getStatus
+      responses:
+        '200':
+          description: System status retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SystemStatus'
+
+  /api/v1/csrf-token:
+    get:
+      tags:
+        - Security
+      summary: Get CSRF token
+      description: |
+        Retrieve a CSRF token for protecting state-changing requests.
+        The token should be included in the `X-CSRF-Token` header for POST, PUT, DELETE requests.
+      operationId: getCsrfToken
+      security: []
+      responses:
+        '200':
+          description: CSRF token generated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - token
+                  - expiresAt
+                properties:
+                  token:
+                    type: string
+                    description: The CSRF token to use in subsequent requests
+                    example: "abc123def456..."
+                  expiresAt:
+                    type: string
+                    format: date-time
+                    description: Token expiration timestamp
+                    example: "2025-12-06T15:00:00Z"
+
+  /api/v1/auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: User login
+      description: Authenticate a user and receive access tokens
+      operationId: login
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          description: Too many login attempts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      tags:
+        - Authentication
+      summary: User logout
+      description: Invalidate the current session and revoke tokens
+      operationId: logoutViaDelete
+      responses:
+        '200':
+          description: Logout successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Logged out successfully"
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /api/v1/auth/logout:
+    post:
+      tags:
+        - Authentication
+      summary: User logout
+      description: Invalidate the current session
+      operationId: logout
+      responses:
+        '200':
+          description: Logout successful
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /api/v1/auth/refresh:
+    post:
+      tags:
+        - Authentication
+      summary: Refresh access token
+      description: Get a new access token using a refresh token
+      operationId: refreshToken
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - refresh_token
+              properties:
+                refresh_token:
+                  type: string
+      responses:
+        '200':
+          description: Token refreshed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        '401':
+          description: Invalid or expired refresh token
+
+  /api/v1/query:
+    post:
+      tags:
+        - Query
+      summary: Submit AI query
+      description: |
+        Submit a query to the AI backend for processing.
+        Supports multiple models and streaming responses.
+      operationId: submitQuery
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QueryRequest'
+      responses:
+        '200':
+          description: Query processed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QueryResponse'
+            text/event-stream:
+              schema:
+                type: string
+                description: Server-sent events for streaming responses
+        '202':
+          description: Query accepted for async processing
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AsyncQueryResponse'
+        '400':
+          description: Invalid query request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '429':
+          $ref: '#/components/responses/RateLimitError'
+
+  /api/v1/query/{queryId}:
+    get:
+      tags:
+        - Query
+      summary: Get query status
+      description: Check the status of an async query
+      operationId: getQueryStatus
+      parameters:
+        - name: queryId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Query status retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QueryStatus'
+        '404':
+          description: Query not found
+
+  /api/v1/users:
+    get:
+      tags:
+        - Users
+      summary: List users
+      description: Get a paginated list of users (admin only)
+      operationId: listUsers
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+        - name: search
+          in: query
+          schema:
+            type: string
+          description: Search by name or email
+      responses:
+        '200':
+          description: Users retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserListResponse'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+
+    post:
+      tags:
+        - Users
+      summary: Create user
+      description: Create a new user (admin only)
+      operationId: createUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUserRequest'
+      responses:
+        '201':
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Invalid user data
+        '409':
+          description: User already exists
+
+  /api/v1/users/{userId}:
+    get:
+      tags:
+        - Users
+      summary: Get user by ID
+      operationId: getUser
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: User retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '404':
+          description: User not found
+
+    put:
+      tags:
+        - Users
+      summary: Update user
+      operationId: updateUser
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserRequest'
+      responses:
+        '200':
+          description: User updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '404':
+          description: User not found
+
+    delete:
+      tags:
+        - Users
+      summary: Delete user
+      operationId: deleteUser
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: User deleted successfully
+        '404':
+          description: User not found
+
+  /api/v1/graph/nodes:
+    get:
+      tags:
+        - Knowledge Graph
+      summary: List graph nodes
+      description: Query nodes from the Neo4j knowledge graph
+      operationId: listNodes
+      parameters:
+        - name: label
+          in: query
+          schema:
+            type: string
+          description: Filter by node label
+        - $ref: '#/components/parameters/LimitParam'
+      responses:
+        '200':
+          description: Nodes retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NodeListResponse'
+
+    post:
+      tags:
+        - Knowledge Graph
+      summary: Create graph node
+      operationId: createNode
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateNodeRequest'
+      responses:
+        '201':
+          description: Node created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GraphNode'
+
+  /api/v1/graph/relationships:
+    get:
+      tags:
+        - Knowledge Graph
+      summary: List relationships
+      description: Query relationships from the knowledge graph
+      operationId: listRelationships
+      responses:
+        '200':
+          description: Relationships retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RelationshipListResponse'
+
+    post:
+      tags:
+        - Knowledge Graph
+      summary: Create relationship
+      operationId: createRelationship
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateRelationshipRequest'
+      responses:
+        '201':
+          description: Relationship created successfully
+
+  /api/v1/vectors:
+    post:
+      tags:
+        - Vector Search
+      summary: Index vector
+      description: Add a vector to the Qdrant collection
+      operationId: indexVector
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VectorIndexRequest'
+      responses:
+        '201':
+          description: Vector indexed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VectorIndexResponse'
+
+  /api/v1/vectors/search:
+    post:
+      tags:
+        - Vector Search
+      summary: Semantic search
+      description: Perform semantic similarity search using vectors
+      operationId: searchVectors
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VectorSearchRequest'
+      responses:
+        '200':
+          description: Search results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VectorSearchResponse'
+
+  /api/v1/cache/{key}:
+    get:
+      tags:
+        - Cache
+      summary: Get cached value
+      operationId: getCacheValue
+      parameters:
+        - name: key
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Cached value retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CacheValue'
+        '404':
+          description: Key not found
+
+    delete:
+      tags:
+        - Cache
+      summary: Delete cached value
+      operationId: deleteCacheValue
+      parameters:
+        - name: key
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Cache entry deleted
+        '404':
+          description: Key not found
+
+  /api/v1/cache:
+    post:
+      tags:
+        - Cache
+      summary: Set cache value
+      operationId: setCacheValue
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SetCacheRequest'
+      responses:
+        '201':
+          description: Value cached successfully
+
+  /api/v1/metrics:
+    get:
+      tags:
+        - Metrics
+      summary: Get system metrics
+      description: Retrieve current system metrics and statistics
+      operationId: getMetrics
+      responses:
+        '200':
+          description: Metrics retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SystemMetrics'
+
+  /api/v1/dashboard:
+    get:
+      tags:
+        - Metrics
+      summary: Get dashboard data
+      description: Retrieve aggregated data for the dashboard
+      operationId: getDashboard
+      responses:
+        '200':
+          description: Dashboard data retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DashboardData'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT authentication token
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: API key for service-to-service communication
+
+  parameters:
+    PageParam:
+      name: page
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+      description: Page number
+    LimitParam:
+      name: limit
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+      description: Items per page
+
+  responses:
+    UnauthorizedError:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error: unauthorized
+            message: Authentication required
+            code: 401
+    ForbiddenError:
+      description: Insufficient permissions
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error: forbidden
+            message: Insufficient permissions for this operation
+            code: 403
+    RateLimitError:
+      description: Rate limit exceeded
+      headers:
+        X-RateLimit-Limit:
+          schema:
+            type: integer
+          description: Request limit per window
+        X-RateLimit-Remaining:
+          schema:
+            type: integer
+          description: Remaining requests in window
+        X-RateLimit-Reset:
+          schema:
+            type: integer
+          description: Unix timestamp when window resets
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+  schemas:
+    HealthResponse:
+      type: object
+      required:
+        - status
+        - timestamp
+      properties:
+        status:
+          type: string
+          enum: [healthy, degraded, unhealthy]
+        version:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        services:
+          type: object
+          additionalProperties:
+            type: string
+            enum: [healthy, unhealthy, unknown]
+
+    SystemStatus:
+      type: object
+      properties:
+        uptime:
+          type: integer
+          description: Uptime in seconds
+        version:
+          type: string
+        environment:
+          type: string
+        components:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+              status:
+                type: string
+              latency_ms:
+                type: number
+
+    ErrorResponse:
+      type: object
+      required:
+        - error
+        - message
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+        code:
+          type: integer
+        details:
+          type: object
+          additionalProperties: true
+        request_id:
+          type: string
+          format: uuid
+
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 8
+        mfa_code:
+          type: string
+          pattern: '^\d{6}$'
+
+    LoginResponse:
+      type: object
+      properties:
+        access_token:
+          type: string
+        refresh_token:
+          type: string
+        token_type:
+          type: string
+          default: Bearer
+        expires_in:
+          type: integer
+          description: Token expiry in seconds
+        user:
+          $ref: '#/components/schemas/User'
+
+    TokenResponse:
+      type: object
+      properties:
+        access_token:
+          type: string
+        expires_in:
+          type: integer
+
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        name:
+          type: string
+        role:
+          type: string
+          enum: [user, admin, superadmin]
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    CreateUserRequest:
+      type: object
+      required:
+        - email
+        - password
+        - name
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 8
+        name:
+          type: string
+        role:
+          type: string
+          enum: [user, admin]
+          default: user
+
+    UpdateUserRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        role:
+          type: string
+          enum: [user, admin]
+
+    UserListResponse:
+      type: object
+      properties:
+        users:
+          type: array
+          items:
+            $ref: '#/components/schemas/User'
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+
+    QueryRequest:
+      type: object
+      required:
+        - query
+      properties:
+        query:
+          type: string
+          minLength: 1
+          maxLength: 10000
+        model:
+          type: string
+          default: default
+          description: Model to use (e.g., llama2, mistral, gpt-4)
+        system:
+          type: string
+          description: System prompt
+        max_tokens:
+          type: integer
+          minimum: 1
+          maximum: 4096
+          default: 256
+        temperature:
+          type: number
+          minimum: 0
+          maximum: 2
+          default: 0.7
+        top_p:
+          type: number
+          minimum: 0
+          maximum: 1
+          default: 0.9
+        stream:
+          type: boolean
+          default: false
+        context:
+          type: array
+          items:
+            type: object
+            properties:
+              role:
+                type: string
+                enum: [user, assistant, system]
+              content:
+                type: string
+
+    QueryResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        response:
+          type: string
+        model:
+          type: string
+        usage:
+          type: object
+          properties:
+            prompt_tokens:
+              type: integer
+            completion_tokens:
+              type: integer
+            total_tokens:
+              type: integer
+        latency_ms:
+          type: number
+        created_at:
+          type: string
+          format: date-time
+
+    AsyncQueryResponse:
+      type: object
+      properties:
+        query_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [queued, processing]
+        estimated_wait_seconds:
+          type: integer
+
+    QueryStatus:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [queued, processing, completed, failed]
+        progress:
+          type: number
+          minimum: 0
+          maximum: 100
+        result:
+          $ref: '#/components/schemas/QueryResponse'
+        error:
+          type: string
+
+    GraphNode:
+      type: object
+      properties:
+        id:
+          type: string
+        label:
+          type: string
+        properties:
+          type: object
+          additionalProperties: true
+
+    CreateNodeRequest:
+      type: object
+      required:
+        - label
+      properties:
+        label:
+          type: string
+        properties:
+          type: object
+          additionalProperties: true
+
+    NodeListResponse:
+      type: object
+      properties:
+        nodes:
+          type: array
+          items:
+            $ref: '#/components/schemas/GraphNode'
+        total:
+          type: integer
+
+    CreateRelationshipRequest:
+      type: object
+      required:
+        - from_id
+        - to_id
+        - type
+      properties:
+        from_id:
+          type: string
+        to_id:
+          type: string
+        type:
+          type: string
+        properties:
+          type: object
+          additionalProperties: true
+
+    RelationshipListResponse:
+      type: object
+      properties:
+        relationships:
+          type: array
+          items:
+            type: object
+            properties:
+              from:
+                type: string
+              to:
+                type: string
+              type:
+                type: string
+              properties:
+                type: object
+
+    VectorIndexRequest:
+      type: object
+      required:
+        - id
+        - vector
+      properties:
+        id:
+          type: string
+        vector:
+          type: array
+          items:
+            type: number
+          minItems: 1
+        payload:
+          type: object
+          additionalProperties: true
+
+    VectorIndexResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        status:
+          type: string
+          enum: [indexed, queued]
+
+    VectorSearchRequest:
+      type: object
+      required:
+        - vector
+      properties:
+        vector:
+          type: array
+          items:
+            type: number
+        limit:
+          type: integer
+          default: 10
+          maximum: 100
+        filter:
+          type: object
+          additionalProperties: true
+        score_threshold:
+          type: number
+          minimum: 0
+          maximum: 1
+
+    VectorSearchResponse:
+      type: object
+      properties:
+        results:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+              score:
+                type: number
+              payload:
+                type: object
+
+    CacheValue:
+      type: object
+      properties:
+        key:
+          type: string
+        value:
+          type: string
+        ttl_remaining:
+          type: integer
+
+    SetCacheRequest:
+      type: object
+      required:
+        - key
+        - value
+      properties:
+        key:
+          type: string
+        value:
+          type: string
+        ttl:
+          type: integer
+          description: Time-to-live in seconds
+          default: 3600
+
+    SystemMetrics:
+      type: object
+      properties:
+        requests_total:
+          type: integer
+        requests_per_second:
+          type: number
+        average_latency_ms:
+          type: number
+        error_rate:
+          type: number
+        active_connections:
+          type: integer
+        memory_usage_mb:
+          type: number
+        cpu_usage_percent:
+          type: number
+
+    DashboardData:
+      type: object
+      properties:
+        summary:
+          type: object
+          properties:
+            total_users:
+              type: integer
+            total_queries:
+              type: integer
+            uptime_percent:
+              type: number
+        charts:
+          type: object
+          properties:
+            requests_timeline:
+              type: array
+              items:
+                type: object
+                properties:
+                  timestamp:
+                    type: string
+                  value:
+                    type: number
+            latency_distribution:
+              type: array
+              items:
+                type: object
+                properties:
+                  bucket:
+                    type: string
+                  count:
+                    type: integer
+
+security:
+  - BearerAuth: []
+  - ApiKeyAuth: []
+
+x-tagGroups:
+  - name: Core
+    tags:
+      - Health
+      - Authentication
+      - Query
+  - name: Data Management
+    tags:
+      - Users
+      - Knowledge Graph
+      - Vector Search
+      - Cache
+  - name: Observability
+    tags:
+      - Metrics

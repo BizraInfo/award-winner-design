@@ -1,0 +1,1291 @@
+{
+  "config": {
+    "configFile": "C:\\award-winner-design\\playwright.config.ts",
+    "rootDir": "C:/award-winner-design/tests/e2e",
+    "forbidOnly": true,
+    "fullyParallel": true,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "reporter": [
+      [
+        "html",
+        {
+          "outputFolder": "playwright-report"
+        }
+      ],
+      [
+        "json",
+        {
+          "outputFile": "playwright-results.json"
+        }
+      ],
+      [
+        "github",
+        null
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "quiet": false,
+    "projects": [
+      {
+        "outputDir": "C:/award-winner-design/test-results",
+        "repeatEach": 1,
+        "retries": 2,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "chromium",
+        "name": "chromium",
+        "testDir": "C:/award-winner-design/tests/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "C:/award-winner-design/test-results",
+        "repeatEach": 1,
+        "retries": 2,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "firefox",
+        "name": "firefox",
+        "testDir": "C:/award-winner-design/tests/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "C:/award-winner-design/test-results",
+        "repeatEach": 1,
+        "retries": 2,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "Mobile Chrome",
+        "name": "Mobile Chrome",
+        "testDir": "C:/award-winner-design/tests/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.57.0",
+    "workers": 1,
+    "webServer": {
+      "command": "npm run build && node scripts/serve-standalone.js",
+      "env": {
+        "ALLUSERSPROFILE": "C:\\ProgramData",
+        "APPDATA": "C:\\Users\\BIZRA-OS\\AppData\\Roaming",
+        "ASKUI_INSTALLATION_DIRECTORY": "C:\\Program Files\\askui GmbH\\AskUI Suite\\",
+        "BIZRA_VAULT_KEY": "I3sQCq7UMi5miG0a5NuJFUqqZ6-fXLEzhjNq3IS_xaQ=",
+        "BUNDLED_DEBUGPY_PATH": "c:\\Users\\BIZRA-OS\\.vscode\\extensions\\ms-python.debugpy-2025.16.0-win32-x64\\bundled\\libs\\debugpy",
+        "ChocolateyInstall": "C:\\ProgramData\\chocolatey",
+        "ChocolateyLastPathUpdate": "134075073927259622",
+        "CHROME_CRASHPAD_PIPE_NAME": "\\\\.\\pipe\\crashpad_36824_DLTNOMNQGSNAPEZZ",
+        "CI": "true",
+        "CLAUDE_CODE_SSE_PORT": "45311",
+        "CLAUDE_DISABLE_HOOKS": "1",
+        "COLOR": "1",
+        "COLORTERM": "truecolor",
+        "CommonProgramFiles": "C:\\Program Files\\Common Files",
+        "CommonProgramFiles(x86)": "C:\\Program Files (x86)\\Common Files",
+        "CommonProgramW6432": "C:\\Program Files\\Common Files",
+        "COMPUTERNAME": "MSI",
+        "ComSpec": "C:\\Windows\\System32\\cmd.exe",
+        "configsetroot": "C:\\WINDOWS\\ConfigSetRoot",
+        "CUDA_PATH": "C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v13.0",
+        "CUDA_PATH_V12_6": "C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.6",
+        "CUDA_PATH_V13_0": "C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v13.0",
+        "DriverData": "C:\\Windows\\System32\\Drivers\\DriverData",
+        "EDITOR": "C:\\WINDOWS\\notepad.exe",
+        "EFC_14556_1262719628": "1",
+        "EFC_14556_1592913036": "1",
+        "EFC_14556_2283032206": "1",
+        "EFC_14556_3789132940": "1",
+        "ENABLE_IDE_INTEGRATION": "true",
+        "ESET_OPTIONS": "                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               ",
+        "FPS_BROWSER_APP_PROFILE_STRING": "Internet Explorer",
+        "FPS_BROWSER_USER_PROFILE_STRING": "Default",
+        "GIT_ASKPASS": "c:\\Users\\BIZRA-OS\\AppData\\Local\\Programs\\Microsoft VS Code\\resources\\app\\extensions\\git\\dist\\askpass.sh",
+        "GIT_PAGER": "cat",
+        "HOME": "C:\\Users\\BIZRA-OS",
+        "HOMEDRIVE": "C:",
+        "HOMEPATH": "\\Users\\BIZRA-OS",
+        "INIT_CWD": "C:\\award-winner-design",
+        "LANG": "en_US.UTF-8",
+        "LEVEL_ZERO_V1_SDK_PATH": "C:\\Program Files\\LevelZeroSDK\\1.24.0\\",
+        "LOCALAPPDATA": "C:\\Users\\BIZRA-OS\\AppData\\Local",
+        "LOGONSERVER": "\\\\MSI",
+        "MSMPI_BENCHMARKS": "C:\\Program Files\\Microsoft MPI\\Benchmarks\\",
+        "MSMPI_BIN": "C:\\Program Files\\Microsoft MPI\\Bin\\",
+        "NODE": "C:\\Program Files\\nodejs\\node.exe",
+        "npm_command": "run",
+        "npm_config_cache": "C:\\Users\\BIZRA-OS\\AppData\\Local\\npm-cache",
+        "npm_config_globalconfig": "C:\\Users\\BIZRA-OS\\AppData\\Roaming\\npm\\etc\\npmrc",
+        "npm_config_global_prefix": "C:\\Users\\BIZRA-OS\\AppData\\Roaming\\npm",
+        "npm_config_init_module": "C:\\Users\\BIZRA-OS\\.npm-init.js",
+        "npm_config_local_prefix": "C:\\award-winner-design",
+        "npm_config_node_gyp": "C:\\Users\\BIZRA-OS\\AppData\\Roaming\\npm\\node_modules\\npm\\node_modules\\node-gyp\\bin\\node-gyp.js",
+        "npm_config_noproxy": "",
+        "npm_config_npm_version": "11.6.4",
+        "npm_config_prefix": "C:\\Users\\BIZRA-OS\\AppData\\Roaming\\npm",
+        "npm_config_userconfig": "C:\\Users\\BIZRA-OS\\.npmrc",
+        "npm_config_user_agent": "npm/11.6.4 node/v24.5.0 win32 x64 workspaces/false",
+        "npm_execpath": "C:\\Users\\BIZRA-OS\\AppData\\Roaming\\npm\\node_modules\\npm\\bin\\npm-cli.js",
+        "npm_lifecycle_event": "test:e2e",
+        "npm_lifecycle_script": "playwright test",
+        "npm_node_execpath": "C:\\Program Files\\nodejs\\node.exe",
+        "npm_package_engines_node": ">=20",
+        "npm_package_engines_pnpm": ">=8",
+        "npm_package_json": "C:\\award-winner-design\\package.json",
+        "npm_package_name": "bizra-genesis",
+        "npm_package_version": "0.1.0",
+        "NUMBER_OF_PROCESSORS": "32",
+        "OneDrive": "C:\\Users\\BIZRA-OS\\OneDrive",
+        "OPENSSL_CONF": "C:\\Program Files\\PostgreSQL\\psqlODBC\\etc\\openssl.cnf",
+        "ORIGINAL_XDG_CURRENT_DESKTOP": "undefined",
+        "OS": "Windows_NT",
+        "Path": "C:\\award-winner-design\\node_modules\\.bin;C:\\node_modules\\.bin;C:\\Users\\BIZRA-OS\\AppData\\Roaming\\npm\\node_modules\\npm\\node_modules\\@npmcli\\run-script\\lib\\node-gyp-bin;C:\\Program Files\\PowerShell\\7-preview;C:\\Users\\BIZRA-OS\\AppData\\Local\\cloud-code\\installer\\google-cloud-sdk\\bin;c:\\Users\\BIZRA-OS\\AppData\\Roaming\\Code\\User\\globalStorage\\github.copilot-chat\\debugCommand;c:\\Users\\BIZRA-OS\\AppData\\Roaming\\Code\\User\\globalStorage\\github.copilot-chat\\copilotCli;C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v13.0\\bin\\x64;C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v13.0\\bin;C:\\Program Files (x86)\\Common Files\\Oracle\\Java\\java8path;C:\\Program Files (x86)\\Common Files\\Oracle\\Java\\javapath;C:\\Program Files\\Python313\\Scripts\\;C:\\Program Files\\Python313\\;C:\\Program Files\\Eclipse Adoptium\\jdk-21.0.7.6-hotspot\\bin;C:\\Program Files (x86)\\VMware\\VMware Player\\bin\\;c:\\Users\\bizra\\AppData\\Local\\Programs\\cursor\\resources\\app\\bin;C:\\Program Files\\Microsoft MPI\\Bin\\;C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.6\\bin;C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.6\\libnvvp;C:\\Windows\\system32;C:\\Windows;C:\\Windows\\System32\\Wbem;C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\;C:\\Windows\\System32\\OpenSSH\\;C:\\Program Files (x86)\\NVIDIA Corporation\\PhysX\\Common;C:\\Program Files\\dotnet\\;C:\\Program Files\\Microsoft SQL Server\\150\\Tools\\Binn\\;C:\\Program Files\\Microsoft SQL Server\\Client SDK\\ODBC\\170\\Tools\\Binn\\;C:\\Program Files\\NVIDIA Corporation\\NVIDIA app\\NvDLISR;C:\\WINDOWS\\system32;C:\\WINDOWS;C:\\WINDOWS\\System32\\Wbem;C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\;C:\\WINDOWS\\System32\\OpenSSH\\;C:\\Users\\bizra\\AppData\\Local\\cloud-code\\installer\\google-cloud-sdk\\bin;C:\\Program Files\\NVIDIA GPU Computing Toolkit\\;C:\\WINDOWS\\system32;C:\\WINDOWS;C:\\WINDOWS\\System32\\Wbem;C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\;C:\\WINDOWS\\System32\\OpenSSH\\;C:\\Program Files\\Go\\bin;C:\\Program Files\\Git\\cmd;C:\\ProgramData\\chocolatey\\bin;C:\\Program Files\\GitHub CLI\\;C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance Toolkit\\;C:\\Program Files\\askui GmbH\\AskUI Suite\\Tools\\;C:\\Program Files\\PowerShell\\7-preview\\preview;C:\\Program Files\\CMake\\bin;C:\\Program Files (x86)\\Google\\Cloud SDK\\google-cloud-sdk\\bin;C:\\Program Files\\nodejs\\;C:\\Program Files\\WezTerm;C:\\Program Files\\Memurai\\;C:\\Program Files\\Amazon\\AWSCLIV2\\;C:\\Program Files\\Microsoft SQL Server\\170\\Tools\\Binn\\;C:\\Program Files\\NVIDIA Corporation\\Nsight Compute 2025.3.1\\;C:\\Program Files\\LLVM\\bin;C:\\Program Files (x86)\\LLVM\\bin;C:\\Program Files\\k6\\;C:\\Program Files\\Docker\\Docker\\resources\\bin;C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v13.0\\bin\\x64;C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v13.0\\bin;C:\\Program Files (x86)\\Common Files\\Oracle\\Java\\java8path;C:\\Program Files (x86)\\Common Files\\Oracle\\Java\\javapath;C:\\Program Files\\Python313\\Scripts\\;C:\\Program Files\\Python313\\;C:\\Program Files\\Eclipse Adoptium\\jdk-21.0.7.6-hotspot\\bin;C:\\Program Files (x86)\\VMware\\VMware Player\\bin\\;c:\\Users\\bizra\\AppData\\Local\\Programs\\cursor\\resources\\app\\bin;C:\\Program Files\\Microsoft MPI\\Bin\\;C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.6\\bin;C:\\Program Files\\NVIDIA GPU Computing Toolkit\\CUDA\\v12.6\\libnvvp;C:\\Windows\\system32;C:\\Windows;C:\\Windows\\System32\\Wbem;C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\;C:\\Windows\\System32\\OpenSSH\\;C:\\Program Files (x86)\\NVIDIA Corporation\\PhysX\\Common;C:\\Program Files\\dotnet\\;C:\\Program Files\\Microsoft SQL Server\\150\\Tools\\Binn\\;C:\\Program Files\\Microsoft SQL Server\\Client SDK\\ODBC\\170\\Tools\\Binn\\;C:\\Program Files\\NVIDIA Corporation\\NVIDIA app\\NvDLIS;C:\\Users\\BIZRA-OS\\.lmstudio\\bin;C:\\Users\\BIZRA-OS\\AppData\\Local\\Programs\\Ollama;C:\\Users\\BIZRA-OS\\AppData\\Local\\Programs\\Antigravity\\bin;c:\\Users\\BIZRA-OS\\.vscode\\extensions\\ms-python.debugpy-2025.16.0-win32-x64\\bundled\\scripts\\noConfigScripts",
+        "PATHEXT": ".COM;.EXE;.BAT;.CMD;.VBS;.VBE;.JS;.JSE;.WSF;.WSH;.MSC;.PY;.PYW;.CPL",
+        "POWERSHELL_DISTRIBUTION_CHANNEL": "MSI:Windows 10 Pro for Workstations",
+        "PROCESSOR_ARCHITECTURE": "AMD64",
+        "PROCESSOR_IDENTIFIER": "Intel64 Family 6 Model 183 Stepping 1, GenuineIntel",
+        "PROCESSOR_LEVEL": "6",
+        "PROCESSOR_REVISION": "b701",
+        "ProgramData": "C:\\ProgramData",
+        "ProgramFiles": "C:\\Program Files",
+        "ProgramFiles(x86)": "C:\\Program Files (x86)",
+        "ProgramW6432": "C:\\Program Files",
+        "PROMPT": "$P$G",
+        "PSModulePath": "C:\\Users\\BIZRA-OS\\Downloads\\OneDrive\\Documents\\PowerShell\\Modules;C:\\Program Files\\PowerShell\\Modules;c:\\program files\\powershell\\7-preview\\Modules;C:\\Program Files\\WindowsPowerShell\\Modules;C:\\WINDOWS\\system32\\WindowsPowerShell\\v1.0\\Modules;C:\\Program Files (x86)\\Google\\Cloud SDK\\google-cloud-sdk\\platform\\PowerShell",
+        "PUBLIC": "C:\\Users\\Public",
+        "PYDEVD_DISABLE_FILE_VALIDATION": "1",
+        "PYTHONSTARTUP": "c:\\Users\\BIZRA-OS\\AppData\\Roaming\\Code\\User\\workspaceStorage\\f88fc2fc2dae586b39dc0f9f0fcce6f1\\ms-python.python\\pythonrc.py",
+        "PYTHON_BASIC_REPL": "1",
+        "SESSIONNAME": "Console",
+        "SystemDrive": "C:",
+        "SystemRoot": "C:\\WINDOWS",
+        "TEMP": "C:\\Users\\BIZRA-OS\\AppData\\Local\\Temp",
+        "TERM_PROGRAM": "vscode",
+        "TERM_PROGRAM_VERSION": "1.106.3",
+        "TMP": "C:\\Users\\BIZRA-OS\\AppData\\Local\\Temp",
+        "USERDOMAIN": "MSI",
+        "USERDOMAIN_ROAMINGPROFILE": "MSI",
+        "USERNAME": "BIZRA-OS",
+        "USERPROFILE": "C:\\Users\\BIZRA-OS",
+        "VBOX_MSI_INSTALL_PATH": "C:\\Program Files\\Oracle\\VirtualBox\\",
+        "VSCODE_DEBUGPY_ADAPTER_ENDPOINTS": "c:\\Users\\BIZRA-OS\\.vscode\\extensions\\ms-python.debugpy-2025.16.0-win32-x64\\.noConfigDebugAdapterEndpoints\\endpoint-c8cb9491ec1cc4f1.txt",
+        "VSCODE_GIT_ASKPASS_EXTRA_ARGS": "",
+        "VSCODE_GIT_ASKPASS_MAIN": "c:\\Users\\BIZRA-OS\\AppData\\Local\\Programs\\Microsoft VS Code\\resources\\app\\extensions\\git\\dist\\askpass-main.js",
+        "VSCODE_GIT_ASKPASS_NODE": "C:\\Users\\BIZRA-OS\\AppData\\Local\\Programs\\Microsoft VS Code\\Code.exe",
+        "VSCODE_GIT_IPC_HANDLE": "\\\\.\\pipe\\vscode-git-25ee96e373-sock",
+        "VSCODE_INJECTION": "1",
+        "VSCODE_PYTHON_AUTOACTIVATE_GUARD": "1",
+        "windir": "C:\\WINDOWS",
+        "ZES_ENABLE_SYSMAN": "1",
+        "PORT": "3100",
+        "E2E_PORT": "3100",
+        "HOSTNAME": "localhost"
+      },
+      "url": "http://localhost:3100",
+      "reuseExistingServer": false,
+      "timeout": 120000,
+      "stdout": "pipe",
+      "stderr": "pipe"
+    }
+  },
+  "suites": [
+    {
+      "title": "lifecycle.spec.ts",
+      "file": "lifecycle.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Lifecycle Journey",
+          "file": "lifecycle.spec.ts",
+          "line": 8,
+          "column": 6,
+          "specs": [
+            {
+              "title": "Landing page loads correctly",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 555,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-06T10:54:12.156Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "1f1785dee40219527314-bbf358ae8a394e8f55e1",
+              "file": "lifecycle.spec.ts",
+              "line": 19,
+              "column": 7
+            },
+            {
+              "title": "Navigation to seed test phase works",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1421,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-06T10:54:12.911Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "1f1785dee40219527314-6db8a79ae26ae48aa904",
+              "file": "lifecycle.spec.ts",
+              "line": 41,
+              "column": 7
+            },
+            {
+              "title": "Page is responsive on mobile",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 329,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-06T10:54:14.340Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "1f1785dee40219527314-62ab26a9159a94da5641",
+              "file": "lifecycle.spec.ts",
+              "line": 61,
+              "column": 7
+            },
+            {
+              "title": "No console errors on page load",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 800,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-06T10:54:14.677Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "1f1785dee40219527314-b0bf91c45c9c022325a2",
+              "file": "lifecycle.spec.ts",
+              "line": 75,
+              "column": 7
+            },
+            {
+              "title": "Landing page loads correctly",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 3214,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-06T10:54:25.278Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "1f1785dee40219527314-66e1e1c2e570aefb0cdd",
+              "file": "lifecycle.spec.ts",
+              "line": 19,
+              "column": 7
+            },
+            {
+              "title": "Navigation to seed test phase works",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 3750,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-06T10:54:28.966Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "1f1785dee40219527314-ebf58eecfd5d95f7b16b",
+              "file": "lifecycle.spec.ts",
+              "line": 41,
+              "column": 7
+            },
+            {
+              "title": "Page is responsive on mobile",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 2691,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-06T10:54:32.726Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "1f1785dee40219527314-b483fa2e664811b956fc",
+              "file": "lifecycle.spec.ts",
+              "line": 61,
+              "column": 7
+            },
+            {
+              "title": "No console errors on page load",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 3074,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-06T10:54:35.427Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "1f1785dee40219527314-90fe442e2152f60fde22",
+              "file": "lifecycle.spec.ts",
+              "line": 75,
+              "column": 7
+            },
+            {
+              "title": "Landing page loads correctly",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 748,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-06T10:54:59.470Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "1f1785dee40219527314-fcdcdd2f6a4ccad2ac6a",
+              "file": "lifecycle.spec.ts",
+              "line": 19,
+              "column": 7
+            },
+            {
+              "title": "Navigation to seed test phase works",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1519,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-06T10:55:00.430Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "1f1785dee40219527314-616e668538cdc2d014a8",
+              "file": "lifecycle.spec.ts",
+              "line": 41,
+              "column": 7
+            },
+            {
+              "title": "Page is responsive on mobile",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 641,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-06T10:55:01.957Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "1f1785dee40219527314-7b661e666af275f4385e",
+              "file": "lifecycle.spec.ts",
+              "line": 61,
+              "column": 7
+            },
+            {
+              "title": "No console errors on page load",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 986,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-06T10:55:02.606Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "1f1785dee40219527314-2c2584e64cce29804492",
+              "file": "lifecycle.spec.ts",
+              "line": 75,
+              "column": 7
+            }
+          ]
+        },
+        {
+          "title": "3D Showcase",
+          "file": "lifecycle.spec.ts",
+          "line": 96,
+          "column": 6,
+          "specs": [
+            {
+              "title": "Showcase page loads without crashing",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 181,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-06T10:54:15.488Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "1f1785dee40219527314-673ec8167b1c2d2459e5",
+              "file": "lifecycle.spec.ts",
+              "line": 97,
+              "column": 7
+            },
+            {
+              "title": "Showcase handles WebGL unavailable gracefully",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 4147,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-06T10:54:15.677Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "1f1785dee40219527314-0b5a23d259e45acf5146",
+              "file": "lifecycle.spec.ts",
+              "line": 110,
+              "column": 7
+            },
+            {
+              "title": "Showcase page loads without crashing",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 2330,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-06T10:54:38.509Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "1f1785dee40219527314-65c3421a9d8477922ae0",
+              "file": "lifecycle.spec.ts",
+              "line": 97,
+              "column": 7
+            },
+            {
+              "title": "Showcase handles WebGL unavailable gracefully",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 4499,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-06T10:54:40.853Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "1f1785dee40219527314-046cb4406ac7e8e2f2e1",
+              "file": "lifecycle.spec.ts",
+              "line": 110,
+              "column": 7
+            },
+            {
+              "title": "Showcase page loads without crashing",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 227,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-06T10:55:03.602Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "1f1785dee40219527314-28336c28fb956bd5066b",
+              "file": "lifecycle.spec.ts",
+              "line": 97,
+              "column": 7
+            },
+            {
+              "title": "Showcase handles WebGL unavailable gracefully",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 5271,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-06T10:55:03.836Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "1f1785dee40219527314-0095df185057e2f4918a",
+              "file": "lifecycle.spec.ts",
+              "line": 110,
+              "column": 7
+            }
+          ]
+        },
+        {
+          "title": "Performance Budgets",
+          "file": "lifecycle.spec.ts",
+          "line": 123,
+          "column": 6,
+          "specs": [
+            {
+              "title": "LCP under 2.5s on landing page",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 785,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-06T10:54:19.835Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "1f1785dee40219527314-528833caf8ed78d1d437",
+              "file": "lifecycle.spec.ts",
+              "line": 124,
+              "column": 7
+            },
+            {
+              "title": "No layout shift (CLS) on load",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 3265,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-06T10:54:20.628Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "1f1785dee40219527314-5159d4fe562b5376d215",
+              "file": "lifecycle.spec.ts",
+              "line": 150,
+              "column": 7
+            },
+            {
+              "title": "LCP under 2.5s on landing page",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 2802,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-06T10:54:45.361Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "1f1785dee40219527314-2a164063ab876be815f5",
+              "file": "lifecycle.spec.ts",
+              "line": 124,
+              "column": 7
+            },
+            {
+              "title": "No layout shift (CLS) on load",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 5411,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-06T10:54:48.171Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "1f1785dee40219527314-56a8c3c30ac8a9f0b83f",
+              "file": "lifecycle.spec.ts",
+              "line": 150,
+              "column": 7
+            },
+            {
+              "title": "LCP under 2.5s on landing page",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1337,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-06T10:55:09.115Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "1f1785dee40219527314-400b0b16bdf85fe52073",
+              "file": "lifecycle.spec.ts",
+              "line": 124,
+              "column": 7
+            },
+            {
+              "title": "No layout shift (CLS) on load",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 3553,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-06T10:55:10.465Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "1f1785dee40219527314-ade581087de5ee07c69d",
+              "file": "lifecycle.spec.ts",
+              "line": 150,
+              "column": 7
+            }
+          ]
+        },
+        {
+          "title": "Accessibility",
+          "file": "lifecycle.spec.ts",
+          "line": 173,
+          "column": 6,
+          "specs": [
+            {
+              "title": "Page has proper heading structure",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 355,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-06T10:54:23.904Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "1f1785dee40219527314-18971de0f76aedee67cc",
+              "file": "lifecycle.spec.ts",
+              "line": 174,
+              "column": 7
+            },
+            {
+              "title": "Interactive elements are keyboard accessible",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 346,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-06T10:54:24.268Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "1f1785dee40219527314-a7b55550d7237ad5b0bf",
+              "file": "lifecycle.spec.ts",
+              "line": 186,
+              "column": 7
+            },
+            {
+              "title": "Page has proper heading structure",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 2414,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-06T10:54:53.592Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "1f1785dee40219527314-bd37c88af75e62f80bdd",
+              "file": "lifecycle.spec.ts",
+              "line": 174,
+              "column": 7
+            },
+            {
+              "title": "Interactive elements are keyboard accessible",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 2405,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-06T10:54:56.016Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "1f1785dee40219527314-129ad6c30a4a4c83a447",
+              "file": "lifecycle.spec.ts",
+              "line": 186,
+              "column": 7
+            },
+            {
+              "title": "Page has proper heading structure",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 829,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-06T10:55:14.037Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "1f1785dee40219527314-af953cbd51bd5882bdff",
+              "file": "lifecycle.spec.ts",
+              "line": 174,
+              "column": 7
+            },
+            {
+              "title": "Interactive elements are keyboard accessible",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 825,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-06T10:55:14.887Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "1f1785dee40219527314-76d341a7d6c3f8780b8b",
+              "file": "lifecycle.spec.ts",
+              "line": 186,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2025-12-06T10:53:57.499Z",
+    "duration": 78741.275,
+    "expected": 30,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

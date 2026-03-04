@@ -1,0 +1,90 @@
+# =============================================================================
+# CODEOWNERS - Elite Code Governance
+# =============================================================================
+# This file defines code ownership for automatic PR review assignment
+# and enforces domain expertise accountability.
+# 
+# Format: <pattern> <@owner1> <@owner2> ...
+# =============================================================================
+
+# =============================================================================
+# GLOBAL OWNERSHIP
+# =============================================================================
+# Default owners for everything (last match wins)
+*                                   @BizraInfo/core-team
+
+# =============================================================================
+# CRITICAL CONFIGURATION
+# =============================================================================
+# CI/CD and DevOps - requires senior review
+/.github/                           @BizraInfo/devops @BizraInfo/core-team
+/.github/workflows/                 @BizraInfo/devops
+/.github/CODEOWNERS                 @BizraInfo/core-team
+
+# Build & Deploy configuration
+next.config.mjs                     @BizraInfo/frontend-leads @BizraInfo/devops
+tsconfig.json                       @BizraInfo/frontend-leads
+package.json                        @BizraInfo/core-team
+pnpm-lock.yaml                      @BizraInfo/core-team
+Makefile                            @BizraInfo/devops
+
+# =============================================================================
+# APPLICATION CODE
+# =============================================================================
+# Core application
+/app/                               @BizraInfo/frontend-team
+/app/page.tsx                       @BizraInfo/frontend-leads
+/app/layout.tsx                     @BizraInfo/frontend-leads
+
+# Components - domain ownership
+/components/                        @BizraInfo/frontend-team
+/components/lifecycle/              @BizraInfo/frontend-leads
+/components/settings/               @BizraInfo/frontend-team
+/components/demo/                   @BizraInfo/frontend-team
+
+# State management - critical path
+/store/                             @BizraInfo/frontend-leads @BizraInfo/core-team
+/store/use-lifecycle-store.ts       @BizraInfo/frontend-leads
+
+# Business logic & utilities
+/lib/                               @BizraInfo/frontend-leads
+/hooks/                             @BizraInfo/frontend-team
+
+# =============================================================================
+# TESTING & QUALITY
+# =============================================================================
+/tests/                             @BizraInfo/qa-team @BizraInfo/frontend-team
+/tests/unit/                        @BizraInfo/frontend-team
+/tests/e2e/                         @BizraInfo/qa-team
+/tests/k6/                          @BizraInfo/devops @BizraInfo/qa-team
+/tests/performance/                 @BizraInfo/devops
+
+# Test configuration
+vitest.config.ts                    @BizraInfo/frontend-leads
+playwright.config.ts                @BizraInfo/qa-team
+lighthouserc.js                     @BizraInfo/devops
+
+# =============================================================================
+# STYLING
+# =============================================================================
+/styles/                            @BizraInfo/frontend-team
+tailwind.config.*                   @BizraInfo/frontend-leads
+postcss.config.*                    @BizraInfo/frontend-leads
+
+# =============================================================================
+# DOCUMENTATION
+# =============================================================================
+*.md                                @BizraInfo/docs-team
+README.md                           @BizraInfo/core-team
+CHANGELOG.md                        @BizraInfo/core-team
+CONTRIBUTING.md                     @BizraInfo/core-team
+
+/docs/                              @BizraInfo/docs-team
+
+# =============================================================================
+# SECURITY
+# =============================================================================
+# Security-sensitive files require security team review
+.env*                               @BizraInfo/security-team @BizraInfo/core-team
+**/auth/**                          @BizraInfo/security-team
+**/security/**                      @BizraInfo/security-team

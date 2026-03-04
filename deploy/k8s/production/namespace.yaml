@@ -1,0 +1,8 @@
+# BIZRA Genesis - Production Namespace
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: production
+  labels:
+    environment: production
+    app: bizra-genesis

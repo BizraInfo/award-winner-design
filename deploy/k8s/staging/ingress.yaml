@@ -1,0 +1,29 @@
+# BIZRA Genesis - Staging Ingress
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: bizra-frontend-ingress
+  namespace: staging
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+    nginx.ingress.kubernetes.io/rate-limit: "100"
+    nginx.ingress.kubernetes.io/rate-limit-window: "1m"
+spec:
+  tls:
+    - hosts:
+        - staging.bizra.io
+      secretName: staging-bizra-tls
+  rules:
+    - host: staging.bizra.io
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: bizra-frontend
+                port:
+                  number: 80

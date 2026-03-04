@@ -1,0 +1,342 @@
+# =============================================================================
+# SEMANTIC RELEASE WORKFLOW - Professional Release Management
+# =============================================================================
+# Implements world-class release practices:
+# - Semantic versioning based on conventional commits
+# - Automated changelog generation
+# - GitHub Release creation with artifacts
+# - NPM package publishing (optional)
+# - Docker image tagging
+# =============================================================================
+
+name: Semantic Release
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Dry run (no actual release)'
+        type: boolean
+        default: false
+      prerelease:
+        description: 'Create pre-release'
+        type: boolean
+        default: false
+
+env:
+  NODE_VERSION: '20'
+  PNPM_VERSION: '9'
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+  packages: write
+
+jobs:
+  # ===========================================================================
+  # RELEASE VALIDATION
+  # ===========================================================================
+  validate:
+    name: 🔍 Validate Release
+    runs-on: ubuntu-latest
+    outputs:
+      should_release: ${{ steps.check.outputs.should_release }}
+      next_version: ${{ steps.check.outputs.next_version }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Check for Releasable Changes
+        id: check
+        run: |
+          # Analyze commits since last release
+          LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+          echo "Last tag: $LAST_TAG"
+          
+          # Count conventional commits
+          FEAT_COUNT=$(git log $LAST_TAG..HEAD --oneline --grep="^feat" | wc -l)
+          FIX_COUNT=$(git log $LAST_TAG..HEAD --oneline --grep="^fix" | wc -l)
+          BREAKING_COUNT=$(git log $LAST_TAG..HEAD --oneline --grep="BREAKING CHANGE" | wc -l)
+          
+          echo "Features: $FEAT_COUNT, Fixes: $FIX_COUNT, Breaking: $BREAKING_COUNT"
+          
+          # Determine version bump
+          if [ $BREAKING_COUNT -gt 0 ]; then
+            BUMP="major"
+          elif [ $FEAT_COUNT -gt 0 ]; then
+            BUMP="minor"
+          elif [ $FIX_COUNT -gt 0 ]; then
+            BUMP="patch"
+          else
+            BUMP="none"
+          fi
+          
+          if [ "$BUMP" != "none" ]; then
+            echo "should_release=true" >> $GITHUB_OUTPUT
+            
+            # Calculate next version
+            CURRENT_VERSION=$(echo $LAST_TAG | sed 's/v//')
+            IFS='.' read -ra VERSION_PARTS <<< "$CURRENT_VERSION"
+            MAJOR=${VERSION_PARTS[0]:-0}
+            MINOR=${VERSION_PARTS[1]:-0}
+            PATCH=${VERSION_PARTS[2]:-0}
+            
+            case $BUMP in
+              major) NEXT_VERSION="$((MAJOR + 1)).0.0" ;;
+              minor) NEXT_VERSION="${MAJOR}.$((MINOR + 1)).0" ;;
+              patch) NEXT_VERSION="${MAJOR}.${MINOR}.$((PATCH + 1))" ;;
+            esac
+            
+            echo "next_version=$NEXT_VERSION" >> $GITHUB_OUTPUT
+            echo "Next version will be: v$NEXT_VERSION ($BUMP bump)"
+          else
+            echo "should_release=false" >> $GITHUB_OUTPUT
+            echo "No releasable changes detected"
+          fi
+
+  # ===========================================================================
+  # BUILD RELEASE ARTIFACTS
+  # ===========================================================================
+  build:
+    name: 🏗️ Build Release
+    runs-on: ubuntu-latest
+    needs: validate
+    if: needs.validate.outputs.should_release == 'true'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run Tests
+        run: pnpm test:unit
+
+      - name: Build Production
+        run: pnpm build
+        env:
+          NODE_ENV: production
+
+      - name: Create Release Archive
+        run: |
+          VERSION="${{ needs.validate.outputs.next_version }}"
+          mkdir -p release
+          
+          # Create standalone deployment package
+          tar -czvf release/bizra-genesis-v${VERSION}.tar.gz \
+            .next/standalone \
+            .next/static \
+            public \
+            package.json \
+            --exclude=".next/cache"
+          
+          # Create checksum
+          cd release
+          sha256sum *.tar.gz > checksums.sha256
+          cd ..
+
+      - name: Upload Release Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-artifacts
+          path: release/
+          retention-days: 30
+
+  # ===========================================================================
+  # GENERATE CHANGELOG
+  # ===========================================================================
+  changelog:
+    name: 📝 Generate Changelog
+    runs-on: ubuntu-latest
+    needs: validate
+    if: needs.validate.outputs.should_release == 'true'
+    outputs:
+      changelog: ${{ steps.generate.outputs.changelog }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Generate Changelog
+        id: generate
+        run: |
+          VERSION="${{ needs.validate.outputs.next_version }}"
+          LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          DATE=$(date +%Y-%m-%d)
+          
+          # Generate changelog content
+          {
+            echo "## [${VERSION}] - ${DATE}"
+            echo ""
+            
+            # Features
+            FEATURES=$(git log ${LAST_TAG:+$LAST_TAG..}HEAD --oneline --grep="^feat" --format="- %s (%h)" 2>/dev/null)
+            if [ -n "$FEATURES" ]; then
+              echo "### ✨ Features"
+              echo "$FEATURES"
+              echo ""
+            fi
+            
+            # Bug Fixes
+            FIXES=$(git log ${LAST_TAG:+$LAST_TAG..}HEAD --oneline --grep="^fix" --format="- %s (%h)" 2>/dev/null)
+            if [ -n "$FIXES" ]; then
+              echo "### 🐛 Bug Fixes"
+              echo "$FIXES"
+              echo ""
+            fi
+            
+            # Performance
+            PERF=$(git log ${LAST_TAG:+$LAST_TAG..}HEAD --oneline --grep="^perf" --format="- %s (%h)" 2>/dev/null)
+            if [ -n "$PERF" ]; then
+              echo "### ⚡ Performance"
+              echo "$PERF"
+              echo ""
+            fi
+            
+            # Breaking Changes
+            BREAKING=$(git log ${LAST_TAG:+$LAST_TAG..}HEAD --oneline --grep="BREAKING CHANGE" --format="- %s (%h)" 2>/dev/null)
+            if [ -n "$BREAKING" ]; then
+              echo "### 💥 Breaking Changes"
+              echo "$BREAKING"
+              echo ""
+            fi
+            
+            # Other changes
+            OTHER=$(git log ${LAST_TAG:+$LAST_TAG..}HEAD --oneline --grep="^\(chore\|docs\|refactor\|style\|test\)" --format="- %s (%h)" 2>/dev/null)
+            if [ -n "$OTHER" ]; then
+              echo "### 🔧 Other Changes"
+              echo "$OTHER"
+              echo ""
+            fi
+            
+          } > changelog_entry.md
+          
+          # Output for use in release
+          CHANGELOG_CONTENT=$(cat changelog_entry.md)
+          echo "changelog<<EOF" >> $GITHUB_OUTPUT
+          echo "$CHANGELOG_CONTENT" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Upload Changelog
+        uses: actions/upload-artifact@v4
+        with:
+          name: changelog
+          path: changelog_entry.md
+
+  # ===========================================================================
+  # CREATE RELEASE
+  # ===========================================================================
+  release:
+    name: 🚀 Create Release
+    runs-on: ubuntu-latest
+    needs: [validate, build, changelog]
+    if: needs.validate.outputs.should_release == 'true' && github.event.inputs.dry_run != 'true'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Download Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: release-artifacts
+          path: release/
+
+      - name: Download Changelog
+        uses: actions/download-artifact@v4
+        with:
+          name: changelog
+          path: ./
+
+      - name: Update Version in package.json
+        run: |
+          VERSION="${{ needs.validate.outputs.next_version }}"
+          npm version $VERSION --no-git-tag-version
+          
+          # Update VERSION file
+          echo "$VERSION" > VERSION
+
+      - name: Prepend to CHANGELOG.md
+        run: |
+          if [ -f CHANGELOG.md ]; then
+            cat changelog_entry.md CHANGELOG.md > CHANGELOG.tmp
+            mv CHANGELOG.tmp CHANGELOG.md
+          else
+            cp changelog_entry.md CHANGELOG.md
+          fi
+
+      - name: Commit Version Bump
+        run: |
+          VERSION="${{ needs.validate.outputs.next_version }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add package.json VERSION CHANGELOG.md
+          git commit -m "chore(release): v${VERSION} [skip ci]"
+          git tag -a "v${VERSION}" -m "Release v${VERSION}"
+
+      - name: Push Changes
+        run: |
+          git push origin main --follow-tags
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ needs.validate.outputs.next_version }}
+          name: Release v${{ needs.validate.outputs.next_version }}
+          body: ${{ needs.changelog.outputs.changelog }}
+          files: |
+            release/*
+          prerelease: ${{ github.event.inputs.prerelease == 'true' }}
+          generate_release_notes: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Release Summary
+        run: |
+          echo "## 🎉 Release v${{ needs.validate.outputs.next_version }} Created!" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Changelog" >> $GITHUB_STEP_SUMMARY
+          cat changelog_entry.md >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Artifacts" >> $GITHUB_STEP_SUMMARY
+          echo "- Release archive uploaded to GitHub Release" >> $GITHUB_STEP_SUMMARY
+          echo "- SHA256 checksums included" >> $GITHUB_STEP_SUMMARY

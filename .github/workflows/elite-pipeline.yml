@@ -1,0 +1,481 @@
+name: Elite CI/CD Pipeline
+on:
+  push:
+    branches: [main, develop, 'release/*']
+  pull_request:
+    branches: [main, develop]
+  workflow_dispatch:
+    inputs:
+      deploy_environment:
+        description: 'Deployment environment'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+
+env:
+  NODE_VERSION: '20.x'
+  PNPM_VERSION: '9'
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  # ═══════════════════════════════════════════════════════════════
+  # GATE 1: Code Quality & Linting
+  # ═══════════════════════════════════════════════════════════════
+  gate-1-quality:
+    name: 'Gate 1: Code Quality'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run ESLint
+        run: pnpm lint
+
+      - name: Run Prettier check
+        run: pnpm format:check
+
+      - name: TypeScript type check
+        run: pnpm type-check
+
+      - name: Check for console.log statements
+        run: |
+          if grep -rn "console\.log" --include="*.ts" --include="*.tsx" app/ components/ lib/ | grep -v "// eslint-disable" | grep -v ".test." | grep -v ".spec."; then
+            echo "❌ Found console.log statements in production code"
+            exit 1
+          fi
+          echo "✅ No console.log statements found"
+
+  # ═══════════════════════════════════════════════════════════════
+  # GATE 2: Unit & Integration Tests
+  # ═══════════════════════════════════════════════════════════════
+  gate-2-tests:
+    name: 'Gate 2: Testing'
+    runs-on: ubuntu-latest
+    needs: gate-1-quality
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run unit tests with coverage
+        run: pnpm test:coverage
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage/lcov.info
+          fail_ci_if_error: true
+          verbose: true
+
+      - name: Verify coverage thresholds
+        run: |
+          COVERAGE=$(cat coverage/coverage-summary.json | jq '.total.lines.pct')
+          if (( $(echo "$COVERAGE < 80" | bc -l) )); then
+            echo "❌ Coverage $COVERAGE% is below 80% threshold"
+            exit 1
+          fi
+          echo "✅ Coverage: $COVERAGE%"
+
+  # ═══════════════════════════════════════════════════════════════
+  # GATE 3: Security Scanning
+  # ═══════════════════════════════════════════════════════════════
+  gate-3-security:
+    name: 'Gate 3: Security'
+    runs-on: ubuntu-latest
+    needs: gate-1-quality
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # Dependency vulnerability scanning
+      - name: Run Snyk security scan
+        uses: snyk/actions/node@master
+        continue-on-error: true
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: --severity-threshold=high
+
+      # npm audit for additional coverage
+      - name: Run npm audit
+        run: pnpm audit --audit-level=high
+
+      # Secret scanning with GitLeaks
+      - name: Run GitLeaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
+
+      # SAST with CodeQL
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: javascript, typescript
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+
+      # License compliance check
+      - name: Check license compliance
+        run: |
+          npx license-checker --onlyAllow "MIT;Apache-2.0;BSD-2-Clause;BSD-3-Clause;ISC;0BSD" --excludePrivatePackages
+
+  # ═══════════════════════════════════════════════════════════════
+  # GATE 4: Build & Bundle Analysis
+  # ═══════════════════════════════════════════════════════════════
+  gate-4-build:
+    name: 'Gate 4: Build'
+    runs-on: ubuntu-latest
+    needs: [gate-2-tests, gate-3-security]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build application
+        run: pnpm build
+        env:
+          NODE_ENV: production
+
+      - name: Analyze bundle size
+        run: |
+          npx @next/bundle-analyzer analyze
+          
+          # Check bundle size limits
+          BUNDLE_SIZE=$(du -sb .next/static | cut -f1)
+          MAX_SIZE=5242880  # 5MB
+          
+          if [ "$BUNDLE_SIZE" -gt "$MAX_SIZE" ]; then
+            echo "❌ Bundle size $BUNDLE_SIZE exceeds limit $MAX_SIZE"
+            exit 1
+          fi
+          echo "✅ Bundle size: $BUNDLE_SIZE bytes"
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-output
+          path: |
+            .next/
+            public/
+          retention-days: 7
+
+  # ═══════════════════════════════════════════════════════════════
+  # GATE 5: E2E & Performance Testing
+  # ═══════════════════════════════════════════════════════════════
+  gate-5-e2e:
+    name: 'Gate 5: E2E & Performance'
+    runs-on: ubuntu-latest
+    needs: gate-4-build
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-output
+
+      - name: Install Playwright browsers
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Run Playwright E2E tests
+        run: pnpm test:e2e
+        env:
+          CI: true
+
+      - name: Upload Playwright report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 30
+
+      # Lighthouse Performance Testing
+      - name: Run Lighthouse CI
+        run: |
+          npm install -g @lhci/cli
+          lhci autorun --upload.target=temporary-public-storage
+
+      - name: Check performance thresholds
+        run: |
+          # Performance budget checks
+          PERF_SCORE=$(cat .lighthouseci/*.json | jq '.categories.performance.score * 100' | head -1)
+          if (( $(echo "$PERF_SCORE < 90" | bc -l) )); then
+            echo "❌ Performance score $PERF_SCORE is below 90"
+            exit 1
+          fi
+          echo "✅ Lighthouse Performance: $PERF_SCORE"
+
+  # ═══════════════════════════════════════════════════════════════
+  # GATE 6: Container Security & Build
+  # ═══════════════════════════════════════════════════════════════
+  gate-6-container:
+    name: 'Gate 6: Container'
+    runs-on: ubuntu-latest
+    needs: gate-5-e2e
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release/'))
+    permissions:
+      contents: read
+      packages: write
+      security-events: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=sha,prefix=
+            type=ref,event=branch
+            type=semver,pattern={{version}}
+
+      - name: Build container image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: false
+          load: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # Container security scanning with Trivy
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          severity: 'CRITICAL,HIGH'
+          exit-code: '1'
+
+      - name: Upload Trivy scan results
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+      - name: Push container image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+  # ═══════════════════════════════════════════════════════════════
+  # DEPLOYMENT: Staging
+  # ═══════════════════════════════════════════════════════════════
+  deploy-staging:
+    name: 'Deploy: Staging'
+    runs-on: ubuntu-latest
+    needs: gate-6-container
+    if: github.ref == 'refs/heads/develop'
+    environment:
+      name: staging
+      url: https://staging.bizra.io
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Kubernetes
+        uses: azure/setup-kubectl@v4
+        with:
+          version: 'v1.29.0'
+
+      - name: Configure kubectl
+        run: |
+          echo "${{ secrets.KUBE_CONFIG_STAGING }}" | base64 -d > kubeconfig
+          export KUBECONFIG=kubeconfig
+
+      - name: Deploy to staging
+        run: |
+          kubectl set image deployment/bizra-frontend \
+            bizra-frontend=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }} \
+            --namespace=staging
+          kubectl rollout status deployment/bizra-frontend --namespace=staging --timeout=300s
+
+      - name: Run smoke tests
+        run: |
+          sleep 30
+          curl -f https://staging.bizra.io/api/health || exit 1
+          echo "✅ Smoke tests passed"
+
+  # ═══════════════════════════════════════════════════════════════
+  # DEPLOYMENT: Production
+  # ═══════════════════════════════════════════════════════════════
+  deploy-production:
+    name: 'Deploy: Production'
+    runs-on: ubuntu-latest
+    needs: gate-6-container
+    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release/')
+    environment:
+      name: production
+      url: https://bizra.io
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Kubernetes
+        uses: azure/setup-kubectl@v4
+        with:
+          version: 'v1.29.0'
+
+      - name: Configure kubectl
+        run: |
+          echo "${{ secrets.KUBE_CONFIG_PRODUCTION }}" | base64 -d > kubeconfig
+          export KUBECONFIG=kubeconfig
+
+      - name: Blue-Green Deployment
+        run: |
+          # Deploy to green environment
+          kubectl apply -f deploy/k8s/production/green-deployment.yaml
+          kubectl rollout status deployment/bizra-frontend-green --namespace=production --timeout=600s
+          
+          # Health check green
+          GREEN_HEALTHY=$(kubectl get pods -l app=bizra-frontend-green -n production -o jsonpath='{.items[*].status.containerStatuses[*].ready}' | grep -c true)
+          if [ "$GREEN_HEALTHY" -lt 2 ]; then
+            echo "❌ Green deployment unhealthy"
+            kubectl delete -f deploy/k8s/production/green-deployment.yaml
+            exit 1
+          fi
+          
+          # Switch traffic to green
+          kubectl patch service bizra-frontend -n production -p '{"spec":{"selector":{"version":"green"}}}'
+          
+          # Scale down blue
+          kubectl scale deployment bizra-frontend-blue --replicas=0 -n production
+
+      - name: Post-deployment verification
+        run: |
+          sleep 30
+          
+          # Health check
+          curl -f https://bizra.io/api/health || exit 1
+          
+          # Performance check
+          RESPONSE_TIME=$(curl -o /dev/null -s -w '%{time_total}' https://bizra.io)
+          if (( $(echo "$RESPONSE_TIME > 2" | bc -l) )); then
+            echo "⚠️ Response time $RESPONSE_TIME exceeds 2s threshold"
+          fi
+          
+          echo "✅ Production deployment verified"
+
+      - name: Create release tag
+        if: github.ref == 'refs/heads/main'
+        run: |
+          VERSION=$(date +%Y.%m.%d)-${{ github.run_number }}
+          git tag -a "v$VERSION" -m "Production release v$VERSION"
+          git push origin "v$VERSION"
+
+  # ═══════════════════════════════════════════════════════════════
+  # NOTIFICATIONS
+  # ═══════════════════════════════════════════════════════════════
+  notify:
+    name: 'Notify'
+    runs-on: ubuntu-latest
+    needs: [deploy-staging, deploy-production]
+    if: always()
+    steps:
+      - name: Send Slack notification
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          fields: repo,message,commit,author,action,eventName,workflow
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        if: always()

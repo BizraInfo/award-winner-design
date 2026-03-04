@@ -1,0 +1,61 @@
+# =============================================================================
+# DOCKER IGNORE - Optimize Build Context
+# =============================================================================
+# Excludes unnecessary files from Docker build context for:
+# - Faster builds
+# - Smaller images
+# - Security (no secrets in images)
+# =============================================================================
+
+# Dependencies (will be installed fresh)
+node_modules
+.pnpm-store
+
+# Build outputs
+.next
+out
+dist
+build
+
+# Development files
+*.log
+*.local
+.env*.local
+
+# Testing
+coverage
+playwright-report
+.lighthouseci
+test-results
+
+# IDE
+.idea
+.vscode
+*.swp
+*.swo
+
+# Git
+.git
+.gitignore
+
+# Documentation
+*.md
+!README.md
+docs
+
+# CI/CD (not needed in container)
+.github
+
+# Docker files (avoid recursion)
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Misc
+*.tar.gz
+*.zip
+sbom.json

@@ -1,0 +1,168 @@
+# =============================================================================
+# DEPENDABOT CONFIGURATION - Automated Dependency Management
+# =============================================================================
+# Implements DevOps best practices for dependency health:
+# - Automated security updates
+# - Grouped updates to reduce PR noise
+# - Version-pinned updates with semantic versioning
+# =============================================================================
+
+version: 2
+
+registries:
+  npm-registry:
+    type: npm-registry
+    url: https://registry.npmjs.org
+    replaces-base: true
+
+updates:
+  # ===========================================================================
+  # NPM DEPENDENCIES
+  # ===========================================================================
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "UTC"
+    open-pull-requests-limit: 10
+    versioning-strategy: "increase"
+    registries:
+      - npm-registry
+    
+    # Reviewers and labels
+    reviewers:
+      - "BizraInfo/devops"
+      - "BizraInfo/frontend-leads"
+    labels:
+      - "dependencies"
+      - "automated"
+    
+    # Commit message format
+    commit-message:
+      prefix: "deps"
+      prefix-development: "deps(dev)"
+      include: "scope"
+    
+    # Group related updates
+    groups:
+      # React ecosystem
+      react:
+        patterns:
+          - "react"
+          - "react-dom"
+          - "@types/react*"
+        update-types:
+          - "minor"
+          - "patch"
+      
+      # Next.js ecosystem
+      nextjs:
+        patterns:
+          - "next"
+          - "@next/*"
+          - "eslint-config-next"
+        update-types:
+          - "minor"
+          - "patch"
+      
+      # Three.js / 3D ecosystem
+      threejs:
+        patterns:
+          - "three"
+          - "@react-three/*"
+          - "@types/three"
+          - "postprocessing"
+        update-types:
+          - "minor"
+          - "patch"
+      
+      # Testing ecosystem
+      testing:
+        patterns:
+          - "vitest"
+          - "@vitest/*"
+          - "playwright"
+          - "@playwright/*"
+          - "@testing-library/*"
+        update-types:
+          - "minor"
+          - "patch"
+      
+      # TypeScript & Linting
+      typescript-tooling:
+        patterns:
+          - "typescript"
+          - "eslint"
+          - "@typescript-eslint/*"
+          - "@eslint/*"
+        update-types:
+          - "minor"
+          - "patch"
+      
+      # Build tools
+      build-tools:
+        patterns:
+          - "postcss"
+          - "tailwindcss"
+          - "@tailwindcss/*"
+          - "autoprefixer"
+        update-types:
+          - "minor"
+          - "patch"
+      
+      # Minor/patch updates for all other deps
+      minor-patch:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
+        exclude-patterns:
+          - "react*"
+          - "next*"
+          - "three*"
+          - "vitest*"
+          - "playwright*"
+          - "typescript*"
+          - "eslint*"
+          - "tailwind*"
+    
+    # Ignore patterns for known incompatibilities
+    ignore:
+      # Ignore major versions (handle manually)
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+
+  # ===========================================================================
+  # GITHUB ACTIONS
+  # ===========================================================================
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "UTC"
+    open-pull-requests-limit: 5
+    
+    reviewers:
+      - "BizraInfo/devops"
+    labels:
+      - "dependencies"
+      - "ci/cd"
+      - "automated"
+    
+    commit-message:
+      prefix: "ci"
+      include: "scope"
+    
+    groups:
+      # Group all action updates
+      github-actions:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"

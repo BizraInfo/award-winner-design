@@ -1,0 +1,31 @@
+# =============================================================================
+# DEVELOPMENT DOCKERFILE - Hot Reload Support
+# =============================================================================
+# Optimized for development workflow with:
+# - Volume mounting for hot reload
+# - Development dependencies included
+# - Debugging capabilities
+# =============================================================================
+
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Install pnpm
+RUN corepack enable && corepack prepare pnpm@9 --activate
+
+# Install dependencies first (cache layer)
+COPY package.json pnpm-lock.yaml ./
+RUN pnpm install
+
+# Copy source (will be overridden by volume mount in dev)
+COPY . .
+
+# Development environment
+ENV NODE_ENV=development
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV WATCHPACK_POLLING=true
+
+EXPOSE 3000
+
+CMD ["pnpm", "dev"]

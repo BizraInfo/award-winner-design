@@ -1,0 +1,115 @@
+# BIZRA Genesis - Staging Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bizra-frontend
+  namespace: staging
+  labels:
+    app: bizra-frontend
+    environment: staging
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: bizra-frontend
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: bizra-frontend
+        environment: staging
+    spec:
+      containers:
+        - name: bizra-frontend
+          image: ghcr.io/bizrainfo/bizra-genesis-node:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 3000
+              name: http
+          env:
+            - name: NODE_ENV
+              value: "production"
+            - name: NEXT_PUBLIC_APP_URL
+              value: "https://staging.bizra.io"
+          envFrom:
+            - secretRef:
+                name: bizra-secrets
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: 3000
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: 3000
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+      imagePullSecrets:
+        - name: ghcr-secret
+---
+# Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: bizra-frontend
+  namespace: staging
+  labels:
+    app: bizra-frontend
+spec:
+  type: ClusterIP
+  ports:
+    - port: 80
+      targetPort: 3000
+      protocol: TCP
+      name: http
+  selector:
+    app: bizra-frontend
+---
+# Horizontal Pod Autoscaler
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: bizra-frontend-hpa
+  namespace: staging
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: bizra-frontend
+  minReplicas: 2
+  maxReplicas: 5
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80

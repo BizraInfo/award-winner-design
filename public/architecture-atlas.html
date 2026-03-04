@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BIZRA | System Architecture Atlas v3.0</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Inter:wght@200;300;400;500;600&family=JetBrains+Mono:wght@300;400&family=Playfair+Display:wght@400;600&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Mermaid JS -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        gold: {
+                            100: '#F9F1D8',
+                            300: '#E6D5A6',
+                            400: '#D4B875',
+                            500: '#C9A962',
+                            600: '#B08D45',
+                            900: '#8A6B2E',
+                        },
+                        navy: {
+                            800: '#0A1628',
+                            900: '#050B14',
+                            950: '#020408',
+                        },
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        serif: ['Playfair Display', 'serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                        arabic: ['Amiri', 'serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Sacred Geometry System - φ = 1.618034 */
+        :root {
+            /* Fibonacci Sequence Spacing */
+            --phi: 1.618034;
+            --space-1: 8px;      /* F(6) */
+            --space-2: 13px;     /* F(7) = 8 × φ */
+            --space-3: 21px;     /* F(8) = 13 × φ */
+            --space-5: 34px;     /* F(9) = 21 × φ */
+            --space-8: 55px;     /* F(10) = 34 × φ */
+            --sidebar-width: 320px;
+
+            /* Typography Scale (Musical Intervals) */
+            --text-xs: 10px;     /* Minor Third */
+            --text-sm: 12px;     /* Major Third */
+            
+            /* Color Palette - Ihsān Aligned */
+            --intention-green: #4CAF50;    /* 30% weight */
+            --excellence-blue: #2196F3;    /* 25% weight */
+            --benefit-orange: #FF9800;     /* 30% weight */
+            --growth-purple: #9C27B0;      /* 15% weight */
+        }
+
+        body {
+            background-color: #050B14;
+            color: #F8F6F1;
+            overflow: hidden;
+        }
+
+        /* Applied Sacred Spacing */
+        .nav-item {
+            padding: var(--space-2) var(--space-3);
+            margin-bottom: 4px;
+            transition: all 0.3s ease;
+            border-left: 2px solid transparent;
+        }
+        .nav-item:hover {
+            background: rgba(201, 169, 98, 0.05);
+            color: #fff;
+        }
+        .nav-item.active {
+            background: rgba(201, 169, 98, 0.1);
+            border-left-color: #C9A962;
+            color: #C9A962;
+        }
+
+        .glass-panel {
+            width: var(--sidebar-width);
+            background: rgba(10, 22, 40, 0.6);
+            backdrop-filter: blur(12px);
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        /* Custom Scrollbar */
+        .custom-scroll::-webkit-scrollbar { width: 4px; }
+        .custom-scroll::-webkit-scrollbar-track { background: #0A1628; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
+        .custom-scroll::-webkit-scrollbar-thumb:hover { background: #C9A962; }
+
+        .diagram-container {
+            background-image: 
+                linear-gradient(rgba(201, 169, 98, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(201, 169, 98, 0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+
+        /* Enhanced Loader Animation */
+        @keyframes pulse-ring {
+            0%, 100% { transform: scale(1); opacity: 0.6; }
+            50% { transform: scale(1.2); opacity: 0.3; }
+        }
+        .loader-ring::before {
+            content: '';
+            position: absolute;
+            inset: -8px;
+            border: 1px solid #C9A962;
+            border-radius: 50%;
+            opacity: 0.3;
+            animation: pulse-ring 2s ease-in-out infinite;
+        }
+
+        /* Diagram Fade-in Animation */
+        @keyframes diagram-enter {
+            from { opacity: 0; transform: scale(0.95) translateY(10px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        #mermaid-output {
+            animation: diagram-enter 0.5s ease-out;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            will-change: transform;
+        }
+
+        /* Mobile Responsive Styles */
+        @media (max-width: 768px) {
+            aside {
+                position: fixed;
+                left: -320px;
+                transition: left 0.3s ease;
+                z-index: 100;
+                height: 100%;
+            }
+            aside.mobile-open { left: 0; }
+            #mobile-menu-btn { display: flex; }
+            #mobile-overlay.active { display: block; }
+            main { margin-left: 0 !important; width: 100vw; }
+            .diagram-container { padding-top: 60px; }
+        }
+
+        #mobile-menu-btn {
+            display: none;
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 50;
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            background: rgba(10, 22, 40, 0.9);
+            border: 1px solid rgba(201, 169, 98, 0.3);
+            color: #C9A962;
+            backdrop-filter: blur(12px);
+            align-items: center;
+            justify-content: center;
+        }
+
+        #mobile-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 90;
+            backdrop-filter: blur(2px);
+        }
+
+        /* Print Styles */
+        @media print {
+            aside, .absolute.top-0, #mobile-menu-btn, #loader { display: none !important; }
+            main { width: 100%; margin: 0; padding: 0; background: white !important; color: black !important; overflow: visible; }
+            body { background: white !important; overflow: visible; }
+            #mermaid-output svg { max-width: 100%; height: auto; page-break-inside: avoid; }
+            .diagram-container { background: none; }
+            /* Add title for print */
+            main::before {
+                content: attr(data-diagram-title);
+                display: block;
+                font-size: 24pt;
+                font-family: serif;
+                font-weight: bold;
+                margin-bottom: 20px;
+                color: #000;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body class="h-screen flex text-sm">
+
+    <!-- Mobile Controls -->
+    <button id="mobile-menu-btn" onclick="toggleMobileSidebar()" aria-label="Toggle Menu">
+        <i class="fa-solid fa-bars"></i>
+    </button>
+    <div id="mobile-overlay" onclick="toggleMobileSidebar()"></div>
+
+    <!-- Sidebar Navigation -->
+    <aside class="h-full glass-panel flex flex-col z-20 shadow-xl" aria-label="Architecture Navigation">
+        <!-- Header -->
+        <div class="p-6 border-b border-white/5">
+            <div class="flex items-center gap-3 mb-1">
+                <div class="w-8 h-8 rounded-full border border-gold-500 flex items-center justify-center">
+                    <div class="w-4 h-4 bg-gold-500 rounded-sm rotate-45"></div>
+                </div>
+                <div>
+                    <h1 class="font-serif text-xl tracking-wide text-white">BIZRA</h1>
+                    <div class="text-[10px] uppercase tracking-[0.3em] text-gold-500">System Atlas v3.0</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation List -->
+        <div class="flex-1 overflow-y-auto custom-scroll py-4">
+            <div class="px-6 mb-2 text-[10px] uppercase tracking-widest text-white/30 font-bold">Canonical Draw Set</div>
+            
+            <nav class="space-y-1" role="tablist">
+                <!-- D0 -->
+                <button onclick="loadDiagram('d0')" class="nav-item active w-full text-left flex items-start gap-3 group" id="btn-d0" role="tab" aria-selected="true">
+                    <span class="font-mono text-xs text-gold-500/50 group-hover:text-gold-500 mt-0.5">0</span>
+                    <div>
+                        <div class="font-medium text-white/90">Ecosystem Overview</div>
+                        <div class="text-[10px] text-white/40">The Universe View</div>
+                    </div>
+                </button>
+                <!-- D1 -->
+                <button onclick="loadDiagram('d1')" class="nav-item w-full text-left flex items-start gap-3 group" id="btn-d1" role="tab" aria-selected="false">
+                    <span class="font-mono text-xs text-gold-500/50 group-hover:text-gold-500 mt-0.5">1</span>
+                    <div>
+                        <div class="font-medium text-white/90">Layered Architecture</div>
+                        <div class="text-[10px] text-white/40">L0-L3 Stack & Crown</div>
+                    </div>
+                </button>
+                <!-- D2 -->
+                <button onclick="loadDiagram('d2')" class="nav-item w-full text-left flex items-start gap-3 group" id="btn-d2" role="tab" aria-selected="false">
+                    <span class="font-mono text-xs text-gold-500/50 group-hover:text-gold-500 mt-0.5">2</span>
+                    <div>
+                        <div class="font-medium text-white/90">Node Identity</div>
+                        <div class="text-[10px] text-white/40">Lifecycle & PoI Loop</div>
+                    </div>
+                </button>
+                <!-- D3 -->
+                <button onclick="loadDiagram('d3')" class="nav-item w-full text-left flex items-start gap-3 group" id="btn-d3" role="tab" aria-selected="false">
+                    <span class="font-mono text-xs text-gold-500/50 group-hover:text-gold-500 mt-0.5">3</span>
+                    <div>
+                        <div class="font-medium text-white/90">Node-0 Agent Hierarchy</div>
+                        <div class="text-[10px] text-white/40">Council to Workers (20)</div>
+                    </div>
+                </button>
+                <!-- D4 -->
+                <button onclick="loadDiagram('d4')" class="nav-item w-full text-left flex items-start gap-3 group" id="btn-d4" role="tab" aria-selected="false">
+                    <span class="font-mono text-xs text-gold-500/50 group-hover:text-gold-500 mt-0.5">4</span>
+                    <div>
+                        <div class="font-medium text-white/90">SAT-49 Structure</div>
+                        <div class="text-[10px] text-white/40">The 7 Departments</div>
+                    </div>
+                </button>
+                <!-- D5 -->
+                <button onclick="loadDiagram('d5')" class="nav-item w-full text-left flex items-start gap-3 group" id="btn-d5" role="tab" aria-selected="false">
+                    <span class="font-mono text-xs text-gold-500/50 group-hover:text-gold-500 mt-0.5">5</span>
+                    <div>
+                        <div class="font-medium text-white/90">Governance Pipeline</div>
+                        <div class="text-[10px] text-white/40">Idea to Crown Proof</div>
+                    </div>
+                </button>
+                <!-- D6 -->
+                <button onclick="loadDiagram('d6')" class="nav-item w-full text-left flex items-start gap-3 group" id="btn-d6" role="tab" aria-selected="false">
+                    <span class="font-mono text-xs text-gold-500/50 group-hover:text-gold-500 mt-0.5">6</span>
+                    <div>
+                        <div class="font-medium text-white/90">Runtime v2</div>
+                        <div class="text-[10px] text-white/40">K8s, Rust, Next.js</div>
+                    </div>
+                </button>
+                <!-- D7 -->
+                <button onclick="loadDiagram('d7')" class="nav-item w-full text-left flex items-start gap-3 group" id="btn-d7" role="tab" aria-selected="false">
+                    <span class="font-mono text-xs text-gold-500/50 group-hover:text-gold-500 mt-0.5">7</span>
+                    <div>
+                        <div class="font-medium text-white/90">CI/CD & Delivery</div>
+                        <div class="text-[10px] text-white/40">The DevOps Flow</div>
+                    </div>
+                </button>
+            </nav>
+        </div>
+
+        <!-- Dynamic Metadata Footer -->
+        <div class="p-6 border-t border-white/5 font-mono text-[10px] text-white/30" id="metadata-footer">
+            <!-- Populated by JS -->
+        </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 flex flex-col h-full relative overflow-hidden bg-navy-950 diagram-container" aria-label="Diagram Workspace">
+        
+        <!-- Top Toolbar -->
+        <div class="absolute top-0 left-0 right-0 p-6 flex justify-between items-start pointer-events-none z-10">
+            <div class="pointer-events-auto pl-12 md:pl-0"> <!-- Padding for mobile button -->
+                <h2 id="diagram-title" class="text-2xl font-serif text-white mb-1">Ecosystem Overview</h2>
+                <p id="diagram-desc" class="text-white/50 text-xs max-w-xl">Humans-as-nodes, PAT, SAT, chain, and the value loop.</p>
+            </div>
+            
+            <div class="flex gap-2 pointer-events-auto">
+                <button onclick="exportSVG()" class="px-3 py-1.5 rounded border border-white/10 bg-black/40 text-xs text-white/60 hover:text-gold-500 hover:border-gold-500/50 transition-colors backdrop-blur-sm shadow-lg group" title="Shortcut: E">
+                    <i class="fa-solid fa-download mr-2 group-hover:animate-bounce"></i>Export SVG
+                </button>
+                <button class="px-3 py-1.5 rounded border border-white/10 bg-black/40 text-xs text-white/60 hover:text-white transition-colors backdrop-blur-sm shadow-lg" onclick="zoomIn()" aria-label="Zoom In" title="Shortcut: +">
+                    <i class="fa-solid fa-plus"></i>
+                </button>
+                <button class="px-3 py-1.5 rounded border border-white/10 bg-black/40 text-xs text-white/60 hover:text-white transition-colors backdrop-blur-sm shadow-lg" onclick="zoomOut()" aria-label="Zoom Out" title="Shortcut: -">
+                    <i class="fa-solid fa-minus"></i>
+                </button>
+                <button class="px-3 py-1.5 rounded border border-white/10 bg-black/40 text-xs text-white/60 hover:text-white transition-colors backdrop-blur-sm shadow-lg" onclick="showKeyboardHelp()" aria-label="Help" title="Shortcut: ?">
+                    <i class="fa-solid fa-question"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Diagram Canvas -->
+        <div class="flex-1 overflow-auto flex items-center justify-center p-12 pt-24" id="canvas-wrapper">
+            <div id="mermaid-output" class="transition-transform duration-300 origin-center">
+                <!-- Diagram Renders Here -->
+            </div>
+        </div>
+
+        <!-- Loading Overlay -->
+        <div id="loader" class="absolute inset-0 bg-navy-900 flex items-center justify-center z-50 transition-opacity duration-500 pointer-events-none opacity-0">
+            <div class="flex flex-col items-center">
+                <div class="w-12 h-12 border-2 border-gold-500/20 border-t-gold-500 rounded-full animate-spin mb-4 loader-ring relative"></div>
+                <div class="text-gold-500 text-xs tracking-widest uppercase">Rendering Proof...</div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- SCRIPT LOGIC -->
+    <script>
+        // === 1. CANONICAL DATA ===
+        const diagrams = {
+            d0: { title: "BIZRA Ecosystem Overview", desc: "The high-level picture: Humans, PAT, SAT, and Core Services.", code: `flowchart LR\nsubgraph H[Humans & Devices]\nU[User<br/>Human NodeN]\nD[Devices<br/>PC, Phone]\nU --- D\nend\nsubgraph PAT[Personal Autonomy Team PAT-N]\nPTank[Tank<br/>Safety]\nPDps[DPS<br/>Reasoner]\nPHeal[Healer<br/>Memory]\nPSupp[Support<br/>RAG]\nend\nsubgraph SATC[SAT High Council]\nSATCEO[SAT-CEO]\nCE0[EGO-7]\nCPX[PXS-7]\nCAML[AML-7]\nCKNM[KNM-7]\nCRCE[RCE-7]\nCIRP[IRP-7]\nCTTM[TTM-7]\nend\nsubgraph SATD[SAT Departments]\nEGO[EGO-7<br/>Growth]\nPXS[PXS-7<br/>Product]\nAML[AML-7<br/>Alpha]\nKNM[KNM-7<br/>Media]\nRCE[RCE-7<br/>Risk]\nIRP[IRP-7<br/>Infra]\nTTM[TTM-7<br/>Treasury]\nend\nsubgraph CORE[Core Services]\nLLM[LLM / MoE]\nKG[Knowledge Graph]\nPOI[PoI Engine]\nBG[BlockGraph]\nRP[Resource Pool]\nend\nsubgraph VALUE[Value & Impact]\nTOK[Dual Tokens<br/>SEED/BLOOM]\nIMP[Impact Ledger]\nend\nU -->|"tasks"| PAT\nPAT -->|"requests"| SATC\nSATC --> SATD\nSATD --> CORE\nCORE --> VALUE\nVALUE -->|"rewards"| U\nPAT -->|"attestations"| POI\nPOI --> BG\nBG --> TOK` },
+            d1: { title: "Layered System Architecture", desc: "The L0–L3 stack: Network, Ledger, Intelligence, and Crown Proof.", code: `flowchart TB\nsubgraph L0[Layer 0 – Network]\nNET[Secure P2P Network<br/>libp2p / QUIC]\nNODES[Node0 + NodeN Fabric]\nNET --- NODES\nend\nsubgraph L1[Layer 1 – Ledger & PoI]\nBG[BlockGraph / DAG]\nPOI[PoI Engine]\nTOK[Dual Tokens]\nPOI --> BG --> TOK\nend\nsubgraph L2[Layer 2 – Intelligence]\nsubgraph CORE[Core Components]\nLLM[LLM Engine]\nMEM[Memory Systems]\nPOL[Policy AEGIS]\nSELF[Self-Play]\nend\nPATL[PAT Teams]\nSATL[SAT-49 Team]\nPATL --> CORE\nSATL --> CORE\nend\nsubgraph L3[Layer 3 – Governance & Crown]\nGOV[Governance Flow]\nCROWN[Crown Proof Chain]\nIDEO[Ideology & Spec]\nGOV --> CROWN\nIDEO --> POL\nIDEO --> CROWN\nend\nL0 --> L1 --> L2 --> L3\nPATL -->|PoI| POI\nSATL -->|Changes| GOV\nCROWN --> BG` },
+            d2: { title: "Node Identity & Lifecycle", desc: "How a human becomes a Node, generates PoI, and receives rewards.", code: `flowchart LR\nU[Human User] --> ONB[Onboarding & Pledge]\nONB -->|"assign NodeID"| NODE1[NodeN<br/>Identity & Keys]\nNODE1 --> PATN[Attach PAT-N Team]\nNODE1 --> DEV[Install Client]\nDEV --> RP[Register to Pool]\nPATN --> ACT[Daily Actions]\nACT --> POI_BUNDLE[Generate PoI Bundle]\nPOI_BUNDLE --> POIENG[PoI Engine]\nPOIENG --> LEDGER[BlockGraph Ledger]\nLEDGER --> REWARD[SEED/BLOOM Rewards]\nREWARD --> NODE1` },
+            d3: { title: "Node-0 Agent Hierarchy", desc: "The full hierarchy: 3 Supreme Council, 1 Alpha, 5 Meta, 20 Workers.", code: `flowchart TB\nsubgraph L4[Level 4 – SUPREME COUNCIL]\nC1[Council 1]\nC2[Council 2]\nC3[Council 3]\nend\nsubgraph L3[Level 3 – ALPHA]\nA[ALPHA Coordinator]\nend\nsubgraph L2[Level 2 – META]\nM1[META M1]\nM2[META M2]\nM3[META M3]\nM4[META M4]\nM5[META M5]\nend\nsubgraph L1[Level 1 – WORKERS]\nW1[W1]\nW2[W2]\nW3[W3]\nW4[W4]\nW5[W5]\nW6[W6]\nW7[W7]\nW8[W8]\nW9[W9]\nW10[W10]\nW11[W11]\nW12[W12]\nW13[W13]\nW14[W14]\nW15[W15]\nW16[W16]\nW17[W17]\nW18[W18]\nW19[W19]\nW20[W20]\nend\nC1 & C2 & C3 --> A\nA --> M1 & M2 & M3 & M4 & M5\nM1 --> W1 & W2 & W3 & W4\nM2 --> W5 & W6 & W7 & W8\nM3 --> W9 & W10 & W11 & W12\nM4 --> W13 & W14 & W15 & W16\nM5 --> W17 & W18 & W19 & W20` },
+            d4: { title: "SAT-49 Company Structure", desc: "7 Departments, 7 CEOs, 1 SAT-CEO. The operational brain.", code: `flowchart TB\nSATCEO[SAT-CEO]\nsubgraph DEPTS[7 Departments SAT-49]\nEGO[EGO-7<br/>Growth]\nPXS[PXS-7<br/>Product]\nAML[AML-7<br/>Alpha]\nKNM[KNM-7<br/>Media]\nRCE[RCE-7<br/>Risk]\nIRP[IRP-7<br/>Infra]\nTTM[TTM-7<br/>Treasury]\nend\nSATCEO --> EGO & PXS & AML & KNM & RCE & IRP & TTM\nsubgraph NOTE[Note]\nN1[Internal agents are closed loops]\nN2[Only Dept CEOs talk upwards]\nend` },
+            d5: { title: "Governance & Crown Pipeline", desc: "Idea to Crown Proof: The rigid gates and checks.", code: `flowchart LR\nsubgraph SAT[SAT Side]\nDEPT[Dept CEO]\nCP[Change Package]\nDEPT --> CP --> SATCEO2[SAT-CEO Sign]\nend\nSATCEO2 --> GOV_REG[Register Proposal]\nsubgraph GOV[Governance Gates]\nGOV_VOTE[Token Voting]\nSHADOW[Gate 1: Shadow]\nCANARY[Gate 2: Canary]\nFULL[Gate 3: Rollout]\nGOV_VOTE --> SHADOW --> CANARY --> FULL\nend\nGOV_REG --> GOV_VOTE\nFULL --> CROWN_REQ[Crown Review]\nsubgraph CROWN[Crown Proof Chain]\nMATH[Math]\nLOGIC[Logic]\nSAFETY[Safety AEGIS]\nSTATS[Statistics]\nETHICS[Ethics]\nPOI_IMPACT[PoI Impact]\nMATH & LOGIC & SAFETY & STATS & ETHICS & POI_IMPACT --> VERDICT[Crown Verdict]\nend\nCROWN_REQ --> CROWN\nVERDICT -->|ACCEPT| ENACT[Enactment]\nVERDICT -->|REJECT| BACK[Revision]\nENACT --> BG2[BlockGraph Update]` },
+            d6: { title: "Runtime Architecture v2", desc: "Users -> Frontend -> Rust Core -> K8s -> Ledger.", code: `flowchart TB\nU[Users]\nsubgraph FE[Frontend Next.js]\nWEB[apps/web]\nUI[pkg/ui]\nCLIENT[pkg/client]\nWEB --> UI\nWEB --> CLIENT\nend\nU --> WEB\nCLIENT --> VALAPI[Validation API]\nCLIENT --> CORESVC[Core Services Rust]\nsubgraph K8S[Kubernetes Cluster]\nARGO[Argo Rollouts]\nOBS[Prometheus]\nRBAC[RBAC Genesis]\nend\nVALAPI --> K8S\nCORESVC --> K8S\nsubgraph CICD[CI/CD]\nTESTS[Rust/Jest Tests]\nSUPPLY[SBOM / Cosign]\nend\nCICD --> K8S\nK8S --> BGLEDGER[BlockGraph Ledger]` },
+            d7: { title: "CI/CD & Progressive Delivery", desc: "DevOps flow: PR to Production with automated SLO gates.", code: `flowchart TB\nPR[Pull Request] --> CI[CI GitHub Actions]\nsubgraph CI_PIPE[CI Pipeline]\nNX[Nx Build]\nRUST[Rust Checks]\nJS[JS Tests]\nIMG[Build Image]\nNX --> RUST --> JS --> IMG\nend\nCI --> CI_PIPE\nCI_PIPE --> SUPPLY[Supply Chain Security]\nSUPPLY --> CD[CD Argo Rollouts]\nsubgraph CD_PIPE[CD Flow]\nCAN[Canary Rollout]\nGATES[Automated Gates]\nPROD[Production]\nROLLBACK[Auto-Rollback]\nCAN --> GATES\nGATES -->|Pass| PROD\nGATES -->|Fail| ROLLBACK\nend\nCD --> CD_PIPE` }
+        };
+
+        // === 2. MERMAID CONFIGURATION (IHSAN THEME) ===
+        mermaid.initialize({
+            startOnLoad: false,
+            securityLevel: 'loose',
+            theme: 'base',
+            themeVariables: {
+                primaryColor: '#0A1628',
+                primaryTextColor: '#F8F6F1',
+                primaryBorderColor: '#C9A962',
+                secondaryColor: '#112240',
+                secondaryTextColor: '#E6D5A6',
+                secondaryBorderColor: '#B08D45',
+                tertiaryColor: '#1A2942',
+                tertiaryTextColor: '#D4B875',
+                tertiaryBorderColor: '#8A6B2E',
+                lineColor: '#C9A962',
+                edgeLabelBackground: '#050B14',
+                clusterBkg: 'rgba(10, 22, 40, 0.3)',
+                clusterBorder: '#C9A962',
+                fontFamily: 'Inter, sans-serif',
+                fontSize: '13px',
+                activeColor: '#4CAF50',
+                doneColor: '#2196F3',
+                critColor: '#FF9800',
+                todoColor: '#9C27B0'
+            },
+            flowchart: {
+                curve: 'basis',
+                htmlLabels: true,
+                padding: 20,
+                nodeSpacing: 60,
+                rankSpacing: 80,
+                diagramPadding: 40,
+                useMaxWidth: false
+            },
+            themeCSS: `
+                .node rect, .node circle, .node polygon { stroke-width: 2px; filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.3)); }
+                .cluster rect { stroke-width: 1.5px; stroke-dasharray: 5, 3; rx: 8px; }
+                .edgePath path { stroke-width: 1.5px; filter: drop-shadow(0 2px 4px rgba(201, 169, 98, 0.2)); }
+                .arrowheadPath { fill: #C9A962; stroke: #C9A962; }
+                .edgeLabel { background-color: rgba(5, 11, 20, 0.9); border-radius: 4px; padding: 4px 8px; font-size: 11px; color: #E6D5A6; }
+                .nodeLabel { color: #F8F6F1; line-height: 1.4; }
+            `
+        });
+
+        // === 3. CORE LOGIC ===
+        let zoomLevel = 1;
+        let currentDiagramId = 'd0';
+
+        // Keyboard Shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+            const key = e.key.toLowerCase();
+            
+            // Numbers 0-7
+            if (key >= '0' && key <= '7') {
+                const id = 'd' + key;
+                if (diagrams[id]) loadDiagram(id);
+            }
+            // Zoom
+            else if (key === '=' || key === '+') { e.preventDefault(); zoomIn(); }
+            else if (key === '-' || key === '_') { e.preventDefault(); zoomOut(); }
+            // Reset
+            else if (key === 'r') { e.preventDefault(); resetZoom(); }
+            // Export
+            else if (key === 'e') { e.preventDefault(); exportSVG(); }
+            // Help
+            else if (key === '?') { e.preventDefault(); showKeyboardHelp(); }
+        });
+
+        async function loadDiagram(id) {
+            currentDiagramId = id;
+            
+            // Update UI
+            document.querySelectorAll('.nav-item').forEach(el => {
+                el.classList.remove('active');
+                el.setAttribute('aria-selected', 'false');
+            });
+            const activeBtn = document.getElementById('btn-' + id);
+            if (activeBtn) {
+                activeBtn.classList.add('active');
+                activeBtn.setAttribute('aria-selected', 'true');
+            }
+            
+            const data = diagrams[id];
+            document.getElementById('diagram-title').innerText = data.title;
+            document.getElementById('diagram-desc').innerText = data.desc;
+            
+            // Prepare Print Title
+            document.querySelector('main').setAttribute('data-diagram-title', data.title);
+
+            // Update Metadata
+            updateMetadata(id);
+
+            const output = document.getElementById('mermaid-output');
+            const loader = document.getElementById('loader');
+
+            // Show Loader
+            loader.style.opacity = '1';
+            loader.style.pointerEvents = 'auto';
+            
+            // Reset Zoom
+            resetZoom(false); // false = don't show notification
+
+            // Close mobile menu if open
+            if(window.innerWidth < 768) {
+                document.querySelector('aside').classList.remove('mobile-open');
+                document.getElementById('mobile-overlay').classList.remove('active');
+            }
+
+            setTimeout(async () => {
+                try {
+                    output.innerHTML = '';
+                    const { svg } = await mermaid.render('graphDiv', data.code);
+                    output.innerHTML = svg;
+                    
+                    const svgElement = output.querySelector('svg');
+                    if (svgElement) {
+                        svgElement.style.maxWidth = '100%';
+                        svgElement.style.height = 'auto';
+                        svgElement.setAttribute('role', 'img');
+                        svgElement.setAttribute('aria-label', data.title);
+                    }
+                } catch (e) {
+                    console.error(e);
+                    output.innerHTML = '<div class="text-red-500 font-mono p-4 border border-red-500/50 bg-red-900/20 rounded">Error rendering diagram. Check console.</div>';
+                } finally {
+                    loader.style.opacity = '0';
+                    loader.style.pointerEvents = 'none';
+                }
+            }, 300);
+        }
+
+        function updateMetadata(id) {
+            // Simulated unique hashes based on diagram ID for demonstration
+            const metaMap = {
+                d0: { hash: '0xA1B2C3D4', status: 'GENESIS_VERIFIED', layers: 'L0-L3' },
+                d1: { hash: '0xE5F6A7B8', status: 'CROWN_SEALED', layers: 'L0-L3+Crown' },
+                d2: { hash: '0xC9D0E1F2', status: 'POI_VALIDATED', layers: 'L1+L2' },
+                d3: { hash: '0xF3A4B5C6', status: 'HIERARCHY_LOCKED', layers: 'Agent System' },
+                d4: { hash: '0xD7E8F9A0', status: 'SAT49_SEALED', layers: 'Governance' },
+                d5: { hash: '0xB1C2D3E4', status: 'PIPELINE_VERIFIED', layers: 'Gov+Crown' },
+                d6: { hash: '0xF5A6B7C8', status: 'RUNTIME_DEPLOYED', layers: 'Infrastructure' },
+                d7: { hash: '0xE9F0A1B2', status: 'CICD_LOCKED', layers: 'DevOps' }
+            };
+            const meta = metaMap[id] || { hash: 'UNKNOWN', status: 'DRAFT', layers: '-' };
+            
+            const footer = document.getElementById('metadata-footer');
+            footer.innerHTML = `
+                <div class="space-y-1">
+                    <div class="flex justify-between"><span class="text-gold-500/50">HASH:</span> <span>${meta.hash}</span></div>
+                    <div class="flex justify-between"><span class="text-gold-500/50">STATUS:</span> <span class="text-green-400">${meta.status}</span></div>
+                    <div class="flex justify-between"><span class="text-gold-500/50">LAYERS:</span> <span>${meta.layers}</span></div>
+                    <div class="flex justify-between"><span class="text-gold-500/50">ZOOM:</span> <span id="zoom-val">100%</span></div>
+                </div>
+            `;
+        }
+
+        function zoomIn() {
+            zoomLevel = Math.min(zoomLevel + 0.1, 3);
+            applyZoom();
+        }
+
+        function zoomOut() {
+            zoomLevel = Math.max(zoomLevel - 0.1, 0.5);
+            applyZoom();
+        }
+
+        function resetZoom(notify = true) {
+            zoomLevel = 1;
+            applyZoom();
+            if(notify) showNotification('🔄 Zoom reset to 100%');
+        }
+
+        function applyZoom() {
+            document.getElementById('mermaid-output').style.transform = `scale(${zoomLevel})`;
+            const zoomVal = document.getElementById('zoom-val');
+            if (zoomVal) zoomVal.innerText = Math.round(zoomLevel * 100) + '%';
+        }
+
+        function exportSVG() {
+            const output = document.getElementById('mermaid-output');
+            const svg = output.querySelector('svg');
+            if (!svg) {
+                showNotification('No diagram loaded.', 'error');
+                return;
+            }
+            
+            const svgClone = svg.cloneNode(true);
+            const title = document.getElementById('diagram-title').innerText;
+            
+            // Add Metadata
+            svgClone.setAttribute('data-bizra-diagram', currentDiagramId);
+            svgClone.setAttribute('data-export-timestamp', new Date().toISOString());
+            svgClone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+
+            // Inject Fonts/Styles for Portability
+            const styleElement = document.createElementNS('http://www.w3.org/2000/svg', 'style');
+            styleElement.textContent = `
+                @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+                text { font-family: 'Inter', sans-serif; }
+            `;
+            svgClone.insertBefore(styleElement, svgClone.firstChild);
+            
+            const serializer = new XMLSerializer();
+            const svgString = serializer.serializeToString(svgClone);
+            const blob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.download = `bizra-${currentDiagramId}-${title.toLowerCase().replace(/[^a-z0-9]/g, '-')}-${Date.now()}.svg`;
+            a.href = url;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            showNotification('✅ SVG exported successfully', 'success');
+        }
+
+        function toggleMobileSidebar() {
+            const sidebar = document.querySelector('aside');
+            const overlay = document.getElementById('mobile-overlay');
+            sidebar.classList.toggle('mobile-open');
+            overlay.classList.toggle('active');
+        }
+
+        function showNotification(message, type = 'info') {
+            const notif = document.createElement('div');
+            const colorClass = type === 'success' ? 'bg-green-600' : (type === 'error' ? 'bg-red-600' : 'bg-blue-600');
+            notif.className = `fixed bottom-6 right-6 px-4 py-3 rounded-lg shadow-2xl z-50 transition-all duration-300 ${colorClass} text-white text-xs font-mono font-medium opacity-0 translate-y-4`;
+            notif.textContent = message;
+            document.body.appendChild(notif);
+            
+            // Animate in
+            requestAnimationFrame(() => {
+                notif.classList.remove('opacity-0', 'translate-y-4');
+            });
+            
+            // Remove
+            setTimeout(() => {
+                notif.classList.add('opacity-0', 'translate-y-4');
+                setTimeout(() => notif.remove(), 300);
+            }, 3000);
+        }
+
+        function showKeyboardHelp() {
+            const helpText = `
+📋 KEYBOARD SHORTCUTS
+---------------------
+0-7 : Switch Diagrams
++/- : Zoom In/Out
+ R  : Reset Zoom
+ E  : Export SVG
+ ?  : Show Help
+            `;
+            alert(helpText);
+        }
+
+        // Initial Load
+        window.addEventListener('load', () => {
+            loadDiagram('d0');
+        });
+
+    </script>
+</body>
+</html>

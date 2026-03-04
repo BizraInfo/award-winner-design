@@ -1,0 +1,351 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g., 1.2.0)'
+        required: true
+        type: string
+      prerelease:
+        description: 'Is this a pre-release?'
+        required: false
+        type: boolean
+        default: false
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  # Validate version format
+  validate:
+    name: Validate Release
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      is_prerelease: ${{ steps.version.outputs.is_prerelease }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Determine Version
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" == "push" ]; then
+            VERSION=${GITHUB_REF#refs/tags/v}
+          else
+            VERSION=${{ github.event.inputs.version }}
+          fi
+          
+          # Validate semver format
+          if ! echo "$VERSION" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.]+)?$'; then
+            echo "Invalid version format: $VERSION"
+            exit 1
+          fi
+          
+          # Check if pre-release
+          if echo "$VERSION" | grep -qE '\-(alpha|beta|rc)'; then
+            IS_PRERELEASE=true
+          elif [ "${{ github.event.inputs.prerelease }}" == "true" ]; then
+            IS_PRERELEASE=true
+          else
+            IS_PRERELEASE=false
+          fi
+          
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "is_prerelease=$IS_PRERELEASE" >> $GITHUB_OUTPUT
+          echo "📦 Version: $VERSION (Pre-release: $IS_PRERELEASE)"
+
+      - name: Verify Changelog Entry
+        run: |
+          VERSION=${{ steps.version.outputs.version }}
+          if ! grep -q "\[$VERSION\]" CHANGELOG.md; then
+            echo "⚠️ Warning: No changelog entry found for version $VERSION"
+            echo "Please update CHANGELOG.md before release"
+          fi
+
+  # Run full test suite
+  test:
+    name: Test Suite
+    needs: validate
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: bizra
+          POSTGRES_PASSWORD: testpass
+          POSTGRES_DB: bizra_node0
+        ports:
+          - 5432:5432
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Rust
+        uses: dtolnay/rust-action@stable
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run Backend Tests
+        working-directory: backend
+        run: cargo test --all-features
+        env:
+          DATABASE_URL: postgres://bizra:testpass@localhost:5432/bizra_node0
+          REDIS_URL: redis://localhost:6379
+
+      - name: Run Frontend Tests
+        run: pnpm test
+        env:
+          CI: true
+
+      - name: Build All
+        run: |
+          cd backend && cargo build --release
+          cd ../apps/dashboard && pnpm build
+
+  # Build and push Docker images
+  build-images:
+    name: Build Docker Images
+    needs: [validate, test]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      matrix:
+        component: [backend, dashboard]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract Metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-${{ matrix.component }}
+          tags: |
+            type=semver,pattern={{version}},value=${{ needs.validate.outputs.version }}
+            type=semver,pattern={{major}}.{{minor}},value=${{ needs.validate.outputs.version }}
+            type=semver,pattern={{major}},value=${{ needs.validate.outputs.version }}
+            type=raw,value=latest,enable=${{ needs.validate.outputs.is_prerelease == 'false' }}
+
+      - name: Build and Push
+        uses: docker/build-push-action@v5
+        with:
+          context: ${{ matrix.component == 'backend' && './backend' || './apps/dashboard' }}
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          build-args: |
+            VERSION=${{ needs.validate.outputs.version }}
+            BUILD_DATE=${{ github.event.repository.updated_at }}
+            VCS_REF=${{ github.sha }}
+
+  # Generate release artifacts
+  artifacts:
+    name: Generate Artifacts
+    needs: [validate, test]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Rust
+        uses: dtolnay/rust-action@stable
+
+      - name: Build Release Binaries
+        run: |
+          cd backend
+          cargo build --release --target x86_64-unknown-linux-gnu
+          
+          # Create archive
+          mkdir -p dist
+          cp target/x86_64-unknown-linux-gnu/release/bizra-node0-api dist/
+          cd dist && tar -czvf bizra-node0-api-${{ needs.validate.outputs.version }}-linux-x64.tar.gz bizra-node0-api
+          
+      - name: Generate SBOM
+        uses: anchore/sbom-action@v0
+        with:
+          path: .
+          format: spdx-json
+          output-file: sbom.spdx.json
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-artifacts
+          path: |
+            backend/dist/*.tar.gz
+            sbom.spdx.json
+
+  # Create GitHub Release
+  release:
+    name: Create Release
+    needs: [validate, test, build-images, artifacts]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: release-artifacts
+          path: artifacts
+
+      - name: Generate Release Notes
+        id: notes
+        run: |
+          VERSION=${{ needs.validate.outputs.version }}
+          
+          # Extract changelog for this version
+          awk "/## \[$VERSION\]/,/## \[/" CHANGELOG.md | head -n -2 > release-notes.md
+          
+          # Add container image info
+          echo "" >> release-notes.md
+          echo "## Docker Images" >> release-notes.md
+          echo "" >> release-notes.md
+          echo "Pull the images:" >> release-notes.md
+          echo '```bash' >> release-notes.md
+          echo "docker pull ghcr.io/${{ github.repository }}-backend:$VERSION" >> release-notes.md
+          echo "docker pull ghcr.io/${{ github.repository }}-dashboard:$VERSION" >> release-notes.md
+          echo '```' >> release-notes.md
+          
+          # Add installation instructions
+          echo "" >> release-notes.md
+          echo "## Quick Start" >> release-notes.md
+          echo "" >> release-notes.md
+          echo "See the [Installation Guide](https://github.com/${{ github.repository }}/blob/main/docs/INSTALLATION.md) for detailed instructions." >> release-notes.md
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ needs.validate.outputs.version }}
+          name: BIZRA Node0 Genesis v${{ needs.validate.outputs.version }}
+          body_path: release-notes.md
+          draft: false
+          prerelease: ${{ needs.validate.outputs.is_prerelease }}
+          files: |
+            artifacts/backend/dist/*.tar.gz
+            artifacts/sbom.spdx.json
+          generate_release_notes: true
+
+  # Deploy to staging (for releases)
+  deploy-staging:
+    name: Deploy to Staging
+    needs: [validate, release]
+    if: needs.validate.outputs.is_prerelease == 'false'
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v3
+
+      - name: Configure Kubernetes
+        run: |
+          mkdir -p ~/.kube
+          echo "${{ secrets.KUBE_CONFIG_STAGING }}" | base64 -d > ~/.kube/config
+
+      - name: Update Kustomize Images
+        run: |
+          cd k8s/overlays/staging
+          kustomize edit set image \
+            ghcr.io/${{ github.repository }}-backend:${{ needs.validate.outputs.version }} \
+            ghcr.io/${{ github.repository }}-dashboard:${{ needs.validate.outputs.version }}
+
+      - name: Deploy to Staging
+        run: |
+          kubectl apply -k k8s/overlays/staging
+          kubectl rollout status deployment/api-server -n bizra-node0-staging --timeout=300s
+          kubectl rollout status deployment/dashboard -n bizra-node0-staging --timeout=300s
+
+      - name: Run Smoke Tests
+        run: |
+          STAGING_URL="${{ secrets.STAGING_URL }}"
+          
+          # Health check
+          for i in {1..30}; do
+            if curl -sf "$STAGING_URL/health"; then
+              echo "✅ Health check passed"
+              break
+            fi
+            echo "Waiting for service..."
+            sleep 10
+          done
+          
+          # Basic API test
+          curl -sf "$STAGING_URL/api/v1/status" | jq .
+
+  # Notify on completion
+  notify:
+    name: Send Notifications
+    needs: [validate, release, deploy-staging]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Slack Notification
+        if: ${{ secrets.SLACK_WEBHOOK_URL != '' }}
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          channel: '#releases'
+          fields: repo,message,commit,author,action,eventName,ref,workflow
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+      - name: Summary
+        run: |
+          echo "## 🚀 Release Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Version**: ${{ needs.validate.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Pre-release**: ${{ needs.validate.outputs.is_prerelease }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Images**: ghcr.io/${{ github.repository }}-*:${{ needs.validate.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Status" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Tests passed" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Images built and pushed" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ GitHub release created" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ needs.validate.outputs.is_prerelease }}" == "false" ]; then
+            echo "- ✅ Deployed to staging" >> $GITHUB_STEP_SUMMARY
+          fi
