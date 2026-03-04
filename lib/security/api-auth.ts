@@ -42,8 +42,20 @@ function getRequiredSecret(name: string): Uint8Array {
   return new TextEncoder().encode(value);
 }
 
-const JWT_SECRET = getRequiredSecret('JWT_SECRET');
-const REFRESH_SECRET = getRequiredSecret('REFRESH_SECRET');
+// Lazy-initialized secrets — avoids throwing during build-time module import.
+// Secrets are resolved on first use (runtime), not at import time.
+let _jwtSecret: Uint8Array | null = null;
+let _refreshSecret: Uint8Array | null = null;
+
+function getJwtSecret(): Uint8Array {
+  if (!_jwtSecret) _jwtSecret = getRequiredSecret('JWT_SECRET');
+  return _jwtSecret;
+}
+function getRefreshSecret(): Uint8Array {
+  if (!_refreshSecret) _refreshSecret = getRequiredSecret('REFRESH_SECRET');
+  return _refreshSecret;
+}
+
 
 const ACCESS_TOKEN_EXPIRY = '15m';
 const REFRESH_TOKEN_EXPIRY = '7d';
@@ -117,7 +129,7 @@ export async function generateAccessToken(user: UserPayload): Promise<string> {
     .setIssuedAt()
     .setExpirationTime(ACCESS_TOKEN_EXPIRY)
     .setJti(generateSecureId(16))
-    .sign(JWT_SECRET);
+    .sign(getJwtSecret());
 }
 
 /**
@@ -153,7 +165,7 @@ export async function generateRefreshToken(
     .setIssuedAt()
     .setExpirationTime(REFRESH_TOKEN_EXPIRY)
     .setJti(tokenId)
-    .sign(REFRESH_SECRET);
+    .sign(getRefreshSecret());
 }
 
 /**
@@ -188,7 +200,7 @@ export async function generateTokenPair(
  */
 export async function verifyAccessToken(token: string): Promise<AuthResult> {
   try {
-    const { payload } = await jwtVerify(token, JWT_SECRET);
+    const { payload } = await jwtVerify(token, getJwtSecret());
     
     // Check if token is revoked (async Redis/memory lookup)
     if (payload.jti && await tokenStore.isTokenRevoked(payload.jti as string)) {
@@ -216,7 +228,7 @@ export async function verifyRefreshToken(
   token: string
 ): Promise<{ success: boolean; data?: RefreshTokenData; tokenId?: string; error?: string }> {
   try {
-    const { payload } = await jwtVerify(token, REFRESH_SECRET);
+    const { payload } = await jwtVerify(token, getRefreshSecret());
     const tokenId = payload.jti as string;
     
     // Check if token exists in store (async Redis/memory lookup)

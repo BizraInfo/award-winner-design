@@ -32,8 +32,8 @@ export default [
       ...nextPlugin.configs["core-web-vitals"].rules,
       "no-console": "warn",
       "prefer-const": "warn",
-      "@typescript-eslint/no-unused-vars": "off",
-      "@typescript-eslint/no-explicit-any": "off"
+      "@typescript-eslint/no-unused-vars": ["warn", { "argsIgnorePattern": "^_" }],
+      "@typescript-eslint/no-explicit-any": "warn"
     }
   },
   // Config for .mjs files (like next.config.mjs)

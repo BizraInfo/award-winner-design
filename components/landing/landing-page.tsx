@@ -1,15 +1,34 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
-import gsap from "gsap"
-import { ScrollTrigger } from "gsap/ScrollTrigger"
-import { Chart, registerables } from "chart.js"
 import { useLifecycleStore } from "@/store/use-lifecycle-store"
 import { Sparkles, ArrowRight, ShieldCheck, Heart, Leaf, Star, ChevronDown, Monitor, Mail, ExternalLink } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 
-gsap.registerPlugin(ScrollTrigger)
-Chart.register(...registerables)
+// GSAP and Chart.js are lazy-loaded in useEffect hooks to reduce initial bundle (~300KB)
+let _gsap: Promise<{ gsap: typeof import("gsap").default; ScrollTrigger: typeof import("gsap/ScrollTrigger").ScrollTrigger }> | null = null
+function loadGsap() {
+  if (!_gsap) {
+    _gsap = Promise.all([import("gsap"), import("gsap/ScrollTrigger")]).then(
+      ([{ default: gsap }, { ScrollTrigger }]) => {
+        gsap.registerPlugin(ScrollTrigger)
+        return { gsap, ScrollTrigger }
+      },
+    )
+  }
+  return _gsap
+}
+
+let _chart: Promise<typeof import("chart.js").Chart> | null = null
+function loadChart() {
+  if (!_chart) {
+    _chart = import("chart.js").then(({ Chart, registerables }) => {
+      Chart.register(...registerables)
+      return Chart
+    })
+  }
+  return _chart
+}
 
 // ============================================
 // SOVEREIGN LANDING PAGE
@@ -92,16 +111,21 @@ function ProgressBar() {
   const barRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    gsap.to(barRef.current, {
-      width: "100%",
-      ease: "none",
-      scrollTrigger: {
-        trigger: "body",
-        start: "top top",
-        end: "bottom bottom",
-        scrub: 0
-      }
+    let cancelled = false
+    loadGsap().then(({ gsap }) => {
+      if (cancelled || !barRef.current) return
+      gsap.to(barRef.current, {
+        width: "100%",
+        ease: "none",
+        scrollTrigger: {
+          trigger: "body",
+          start: "top top",
+          end: "bottom bottom",
+          scrub: 0
+        }
+      })
     })
+    return () => { cancelled = true }
   }, [])
 
   return (
@@ -115,16 +139,21 @@ function SideDots({ activeSlide, setActiveSlide }: { activeSlide: number, setAct
   const dots = [0, 1, 2, 3, 4, 5, 6]
 
   useEffect(() => {
-    const slides = document.querySelectorAll('.section-slide')
-    slides.forEach((slide, i) => {
-      ScrollTrigger.create({
-        trigger: slide,
-        start: "top center",
-        end: "bottom center",
-        onEnter: () => setActiveSlide(i),
-        onEnterBack: () => setActiveSlide(i)
+    let cancelled = false
+    loadGsap().then(({ ScrollTrigger }) => {
+      if (cancelled) return
+      const slides = document.querySelectorAll('.section-slide')
+      slides.forEach((slide, i) => {
+        ScrollTrigger.create({
+          trigger: slide,
+          start: "top center",
+          end: "bottom center",
+          onEnter: () => setActiveSlide(i),
+          onEnterBack: () => setActiveSlide(i)
+        })
       })
     })
+    return () => { cancelled = true }
   }, [setActiveSlide])
 
   return (
@@ -154,16 +183,19 @@ function GenesisSlide({ onBegin }: { onBegin: () => void }) {
   const sectionRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    const ctx = gsap.context(() => {
-      gsap.from(".fade-in-up", {
-        y: 40,
-        opacity: 0,
-        duration: 1,
-        stagger: 0.2,
-        ease: "power3.out"
-      })
-    }, sectionRef)
-    return () => ctx.revert()
+    let ctx: ReturnType<typeof import("gsap").default.context> | undefined
+    loadGsap().then(({ gsap }) => {
+      ctx = gsap.context(() => {
+        gsap.from(".fade-in-up", {
+          y: 40,
+          opacity: 0,
+          duration: 1,
+          stagger: 0.2,
+          ease: "power3.out"
+        })
+      }, sectionRef)
+    })
+    return () => { ctx?.revert() }
   }, [])
 
   return (
@@ -194,24 +226,29 @@ function StruggleSlide() {
 
   useEffect(() => {
     if (!counterRef.current) return
+    let cancelled = false
     const target = 15000
-    ScrollTrigger.create({
-      trigger: counterRef.current,
-      start: "top 80%",
-      onEnter: () => {
-        gsap.to(counterRef.current, {
-          innerText: target,
-          duration: 3,
-          snap: { innerText: 1 },
-          onUpdate: function () {
-            if (counterRef.current) {
-              counterRef.current.innerText = Math.ceil(Number(counterRef.current.innerText)).toLocaleString()
+    loadGsap().then(({ gsap, ScrollTrigger }) => {
+      if (cancelled || !counterRef.current) return
+      ScrollTrigger.create({
+        trigger: counterRef.current,
+        start: "top 80%",
+        onEnter: () => {
+          gsap.to(counterRef.current, {
+            innerText: target,
+            duration: 3,
+            snap: { innerText: 1 },
+            onUpdate: function () {
+              if (counterRef.current) {
+                counterRef.current.innerText = Math.ceil(Number(counterRef.current.innerText)).toLocaleString()
+              }
             }
-          }
-        })
-      },
-      once: true
+          })
+        },
+        once: true
+      })
     })
+    return () => { cancelled = true }
   }, [])
 
   return (
@@ -446,25 +483,28 @@ function GaugeChart({ value, label, subtext, color, highlighted = false }: any) 
     const ctx = chartRef.current.getContext('2d')
     if (!ctx) return
 
-    const chart = new Chart(ctx, {
-      type: 'doughnut',
-      data: {
-        datasets: [{
-          data: [value, 100 - value],
-          backgroundColor: [color, 'rgba(255,255,255,0.05)'],
-          borderWidth: 0,
-        }]
-      },
-      options: {
-        cutout: '85%',
-        circumference: 180,
-        rotation: 270,
-        responsive: true,
-        plugins: { tooltip: { enabled: false }, legend: { display: false } }
-      }
+    let chart: InstanceType<typeof import("chart.js").Chart> | undefined
+    loadChart().then((Chart) => {
+      chart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          datasets: [{
+            data: [value, 100 - value],
+            backgroundColor: [color, 'rgba(255,255,255,0.05)'],
+            borderWidth: 0,
+          }]
+        },
+        options: {
+          cutout: '85%',
+          circumference: 180,
+          rotation: 270,
+          responsive: true,
+          plugins: { tooltip: { enabled: false }, legend: { display: false } }
+        }
+      })
     })
 
-    return () => chart.destroy()
+    return () => { chart?.destroy() }
   }, [value, color])
 
   return (

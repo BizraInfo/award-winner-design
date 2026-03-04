@@ -1,4 +1,5 @@
-import { TelemetryEvent } from '../telemetry/interfaces';
+import { type TelemetryEvent } from '../telemetry/interfaces';
+export type { TelemetryEvent } from '../telemetry/interfaces';
 
 export interface SystemState {
     readonly isEmergencyMode: boolean;

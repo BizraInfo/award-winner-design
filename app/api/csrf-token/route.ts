@@ -6,7 +6,12 @@
 
 import crypto from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
-import { generateCSRFToken, hashToken, DEFAULT_CSRF_CONFIG } from '@/lib/security/csrf-protection';
+import {
+  generateCSRFToken,
+  hashToken,
+  verifyCSRFToken,
+  DEFAULT_CSRF_CONFIG,
+} from '@/lib/security/csrf-protection';
 
 export async function GET(request: NextRequest) {
   // Generate new CSRF token
@@ -61,12 +66,8 @@ export async function POST(request: NextRequest) {
     );
   }
   
-  // Verify tokens match using timing-safe comparison
-  const providedHash = hashToken(csrfHeader);
-  
-  // Use timing-safe comparison to prevent timing attacks
-  const hashesMatch = providedHash.length === csrfHashCookie.length &&
-    crypto.timingSafeEqual(Buffer.from(providedHash), Buffer.from(csrfHashCookie));
+  // Verify token+hash and token+cookie.
+  const hashesMatch = verifyCSRFToken(csrfHeader, csrfHashCookie);
   const tokensMatch = csrfHeader.length === csrfCookie.length &&
     crypto.timingSafeEqual(Buffer.from(csrfHeader), Buffer.from(csrfCookie));
   

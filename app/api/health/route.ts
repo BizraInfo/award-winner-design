@@ -14,6 +14,22 @@ export async function GET(request: Request) {
   const url = new URL(request.url);
   const verbose = url.searchParams.get('verbose') === 'true';
 
+  // Defense-in-depth: verbose health requires authenticated context.
+  // Full token validation is enforced in middleware.
+  if (verbose) {
+    const authHeader = request.headers.get('authorization');
+    const hasBearer = authHeader?.startsWith('Bearer ') ?? false;
+    const hasAccessCookie =
+      request.headers.get('cookie')?.includes('access_token=') ?? false;
+
+    if (!hasBearer && !hasAccessCookie) {
+      return NextResponse.json(
+        { error: 'Authentication required for verbose health output' },
+        { status: 401 }
+      );
+    }
+  }
+
   // Increment health check counter
   metrics.incCounter('health_checks_total', 1);
 
@@ -71,7 +87,6 @@ function getMemoryHealth(): { status: 'pass' | 'warn' | 'fail'; details: object 
       heapUsedMB,
       heapTotalMB,
       usagePercent,
-      rssBytes: memUsage.rss,
     },
   }
 }

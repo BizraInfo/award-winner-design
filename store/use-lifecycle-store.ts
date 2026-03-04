@@ -1,5 +1,6 @@
 ﻿import { create } from "zustand"
-import { subscribeWithSelector, persist } from "zustand/middleware"
+import { subscribeWithSelector, persist, createJSONStorage, type StateStorage } from "zustand/middleware"
+import { EncryptedStorage } from "@/lib/security/encrypted-storage"
 
 // ============================================
 // BIZRA USER LIFECYCLE PHASES
@@ -484,6 +485,45 @@ const PHASE_ORDER: LifecyclePhase[] = [
 ]
 
 // ============================================
+// ENCRYPTED STORAGE (AES-GCM 256-bit via Web Crypto)
+// Falls back to plain localStorage on SSR or when Web Crypto is unavailable.
+// ============================================
+function createBizraStorage(): StateStorage {
+  if (typeof window === "undefined" || !window.crypto?.subtle) {
+    // SSR or no Web Crypto — use plain localStorage (or noop on server)
+    return typeof localStorage !== "undefined"
+      ? localStorage
+      : { getItem: () => null, setItem: () => {}, removeItem: () => {} }
+  }
+
+  const enc = new EncryptedStorage("bizra_lc_")
+  let initPromise: Promise<void> | null = null
+  const ensureInit = () => (initPromise ??= enc.initialize("bizra-sovereign-seed-v1"))
+
+  return {
+    getItem: async (name: string) => {
+      try {
+        await ensureInit()
+        return (await enc.getItem<string>(name)) ?? null
+      } catch {
+        return localStorage.getItem(name)
+      }
+    },
+    setItem: async (name: string, value: string) => {
+      try {
+        await ensureInit()
+        await enc.setItem(name, value)
+      } catch {
+        localStorage.setItem(name, value)
+      }
+    },
+    removeItem: (name: string) => {
+      try { enc.removeItem(name) } catch { localStorage.removeItem(name) }
+    },
+  }
+}
+
+// ============================================
 // CREATE STORE
 // ============================================
 export const useLifecycleStore = create<LifecycleState & LifecycleActions>()(
@@ -782,6 +822,7 @@ export const useLifecycleStore = create<LifecycleState & LifecycleActions>()(
       {
         name: "bizra-lifecycle-storage",
         version: LIFECYCLE_PERSIST_VERSION,
+        storage: createJSONStorage(createBizraStorage),
         migrate: (persistedState, version) => {
           // Handle migration from older versions
           const rawState = persistedState as Partial<LifecycleState> | undefined
