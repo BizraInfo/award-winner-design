@@ -67,3 +67,23 @@ rustup-init.exe
 # BIZRA subprojects (separate repos)
 bizra-genesis-node/
 BIZRA-Unified-Windows-Installer/
+  
+# Binary exclusions - NODE0 sovereignty (files stay local)  
+ollama/  
+ollama-extracted/  
+ollama.zip  
+rustup-init.exe  
+gklhgk.pdf  
+*.dll  
+*.exe  
+!node_modules/.bin/*.exe  
+
+# Binary exclusions - NODE0 sovereignty (files stay local)
+ollama/
+ollama-extracted/
+ollama.zip
+rustup-init.exe
+gklhgk.pdf
+*.dll
+*.exe
+!node_modules/**
