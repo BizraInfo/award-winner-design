@@ -1,0 +1,20 @@
+{
+  "chain_name": "award-winner-design",
+  "genesis_commit": "ca2c4638a3c3be11e250e81f9fefc18110d30737",
+  "chain_length": 1,
+  "latest_receipt": "PF-2026-0305-001",
+  "latest_hash": "sha256:c588d0c935905d7c9fd156d8af704abdd1d8e617e54fa5049e50c807439a9ec3",
+  "entries": [
+    {
+      "id": "PF-2026-0305-001",
+      "timestamp": "2026-03-05T10:34:56Z",
+      "description": "Genesis Portal — data visualization storytelling page",
+      "confidence": "Strong (4/5)",
+      "artifacts_count": 2,
+      "total_lines": 773,
+      "tests_passed": 54,
+      "receipt_path": ".proof-forge/receipts/2026-03-05_103456.json",
+      "summary_path": ".proof-forge/summaries/2026-03-05_103456.md"
+    }
+  ]
+}
