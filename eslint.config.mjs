@@ -13,12 +13,17 @@ export default [
       "coverage/**",
       "BIZRA-Unified-Windows-Installer/**",
       "bizra-genesis-node/**",
+      ".bizra-kernel/**",
+      "scripts/**",
+      "deploy/**",
       "tests/**",
       "performance/**",
       "**/.next/**",
       "lighthouserc.js",
       "vitest.config.ts",
-      "playwright.config.ts"
+      "playwright.config.ts",
+      "*.config.cjs",
+      "scripts/*.cjs"
     ]
   },
   js.configs.recommended,
