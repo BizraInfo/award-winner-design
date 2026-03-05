@@ -1,9 +1,11 @@
 name: Release
 
 on:
-  push:
-    tags:
-      - 'v*.*.*'
+  # Disabled: release.yml has broken paths (references backend/ that doesn't exist)
+  # Re-enable when release workflow is rebuilt for this Next.js-only repo
+  # push:
+  #   tags:
+  #     - 'v*.*.*'
   workflow_dispatch:
     inputs:
       version:
