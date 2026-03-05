@@ -3,7 +3,10 @@ import { defineConfig, devices } from '@playwright/test';
 // Use a dedicated port for Playwright to avoid clashing with other local services (e.g., Grafana)
 const E2E_PORT = Number(process.env.E2E_PORT || 3100);
 const E2E_BASE_URL = `http://localhost:${E2E_PORT}`;
-const E2E_COMMAND = `npm run build && node scripts/serve-standalone.js`;
+// In CI the build step runs before test:e2e, so skip redundant rebuild
+const E2E_COMMAND = process.env.CI
+  ? `node scripts/serve-standalone.js`
+  : `pnpm build && node scripts/serve-standalone.js`;
 
 /**
  * Playwright configuration for BIZRA E2E tests
@@ -47,28 +50,23 @@ export default defineConfig({
   },
 
   // Configure projects for major browsers
-  projects: [
-    {
-      name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
-    },
-    // Firefox for cross-browser testing
-    {
-      name: 'firefox',
-      use: { ...devices['Desktop Firefox'] },
-    },
-    // WebKit/Safari
-    // {
-    //   name: 'webkit',
-    //   use: { ...devices['Desktop Safari'] },
-    // },
-    
-    // Mobile viewport
-    {
-      name: 'Mobile Chrome',
-      use: { ...devices['Pixel 5'] },
-    },
-  ],
+  // CI only installs chromium, so restrict to chromium-only in CI
+  projects: process.env.CI
+    ? [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }]
+    : [
+        {
+          name: 'chromium',
+          use: { ...devices['Desktop Chrome'] },
+        },
+        {
+          name: 'firefox',
+          use: { ...devices['Desktop Firefox'] },
+        },
+        {
+          name: 'Mobile Chrome',
+          use: { ...devices['Pixel 5'] },
+        },
+      ],
 
   // Run local dev server before tests
   webServer: {
