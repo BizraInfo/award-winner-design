@@ -1,6 +1,7 @@
 "use client"
 
 import dynamic from "next/dynamic"
+import Link from "next/link"
 import { Suspense, useEffect, useState } from "react"
 import { useBizraStore } from "@/store/use-bizra-store"
 
@@ -212,6 +213,49 @@ export default function ShowcasePage() {
 
           <div id="genesis-dashboard" className="border-t border-[#C9A962]/10">
             <GenesisDashboard />
+          </div>
+
+          {/* Interactive Dashboards */}
+          <div id="dashboards" className="border-t border-[#C9A962]/10 bg-[#0a0e14]/95 backdrop-blur-md py-20">
+            <div className="container mx-auto px-4">
+              <div className="text-center mb-12">
+                <p className="text-[#C9A962] font-mono text-xs tracking-[0.3em] uppercase mb-3">Interactive Dashboards</p>
+                <h2 className="text-3xl md:text-4xl font-serif text-[#F8F6F1]">
+                  Explore the <span className="text-[#2A9D8F]">Architecture</span>
+                </h2>
+                <p className="text-gray-400 mt-3 max-w-xl mx-auto text-sm">
+                  Dive into the live orchestration layer and sovereign pipeline that power every BIZRA interaction.
+                </p>
+              </div>
+              <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+                <Link
+                  href="/showcase/maestro"
+                  className="group relative overflow-hidden rounded-xl border border-[#1e2a3a] bg-[#111820] p-8 transition-all duration-300 hover:border-[#C9A962]/40 hover:shadow-[0_0_30px_rgba(201,169,98,0.1)]"
+                >
+                  <div className="text-3xl mb-4">{"\uD83C\uDFAD"}</div>
+                  <h3 className="text-lg font-semibold text-[#F8F6F1] mb-2">Maestro Orchestration</h3>
+                  <p className="text-sm text-gray-400 leading-relaxed">
+                    Agent ensemble flow, complexity tier routing, emotion-tone mapping, and trust evolution across the relationship lifecycle.
+                  </p>
+                  <div className="mt-4 text-xs text-[#C9A962] font-mono opacity-0 group-hover:opacity-100 transition-opacity">
+                    {"\u2192"} Open Dashboard
+                  </div>
+                </Link>
+                <Link
+                  href="/showcase/pipeline"
+                  className="group relative overflow-hidden rounded-xl border border-[#1e2a3a] bg-[#111820] p-8 transition-all duration-300 hover:border-[#2A9D8F]/40 hover:shadow-[0_0_30px_rgba(42,157,143,0.1)]"
+                >
+                  <div className="text-3xl mb-4">{"\u26E9\uFE0F"}</div>
+                  <h3 className="text-lg font-semibold text-[#F8F6F1] mb-2">Sovereign Pipeline</h3>
+                  <p className="text-sm text-gray-400 leading-relaxed">
+                    9-step message lifecycle with FATE gates, Ihsan scoring, BLAKE2b receipt sealing, and constitutional verification.
+                  </p>
+                  <div className="mt-4 text-xs text-[#2A9D8F] font-mono opacity-0 group-hover:opacity-100 transition-opacity">
+                    {"\u2192"} Open Dashboard
+                  </div>
+                </Link>
+              </div>
+            </div>
           </div>
 
           <div
