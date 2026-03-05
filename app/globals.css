@@ -131,6 +131,22 @@
   --color-gold: var(--color-radiant-gold);
   --color-teal: #2a9d8f;
 
+  /* Dashboard Colors — Maestro & Pipeline components */
+  --color-dash-bg: #0a0e14;
+  --color-dash-surface: #111820;
+  --color-dash-card: #161d27;
+  --color-dash-border: #1e2a3a;
+  --color-dash-dim: #5c6b7f;
+  --color-dash-text: #d4dbe6;
+  --color-dash-green: #2dd4a0;
+  --color-dash-red: #f06050;
+  --color-dash-blue: #4e9fff;
+  --color-dash-purple: #a78bfa;
+  --color-dash-cyan: #22d3ee;
+  --color-dash-amber: #eab308;
+  --color-accent-teal: var(--color-teal);
+  --font-mono: 'JetBrains Mono', 'SF Mono', 'Fira Code', ui-monospace, monospace;
+
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-serif: var(--font-playfair), ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
   --font-arabic: var(--font-amiri), ui-serif, serif;
