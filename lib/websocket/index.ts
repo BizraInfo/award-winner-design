@@ -672,17 +672,18 @@ export class WebSocketServerHandler {
           this.leaveRoom(clientId, (message.payload as { room: string }).room);
           break;
           
-        case 'room:message':
+        case 'room:message': {
           const { room, data: msgData } = message.payload as { room: string; data: unknown };
           this.broadcastToRoom(room, 'room:message', { room, data: msgData }, clientId);
           break;
-          
-        default:
-          // Custom message handler
+        }
+
+        default: {
           const handler = this.messageHandlers.get(message.type);
           if (handler) {
             handler(clientId, message.payload);
           }
+        }
       }
     } catch (error) {
       console.error('[WS Server] Message parse error:', error);
