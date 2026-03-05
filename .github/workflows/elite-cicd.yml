@@ -42,8 +42,6 @@ jobs:
         uses: pnpm/action-setup@v4
         with:
           version: 10
-        with:
-          version: 8
 
       - name: Install Dependencies
         run: pnpm install --frozen-lockfile
@@ -164,8 +162,6 @@ jobs:
         uses: pnpm/action-setup@v4
         with:
           version: 10
-        with:
-          version: 8
 
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
@@ -294,8 +290,6 @@ jobs:
         uses: pnpm/action-setup@v4
         with:
           version: 10
-        with:
-          version: 8
 
       # Build Application for Testing
       - name: Build Application
