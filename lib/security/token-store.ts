@@ -93,9 +93,15 @@ class RedisTokenStore implements TokenStore {
 
   private async initClient(redisUrl?: string): Promise<void> {
     try {
-      // Dynamic import to avoid build errors if redis package isn't installed
-      // @ts-expect-error - redis is an optional dependency
-      const redis = await import('redis');
+      // Runtime-only import to avoid build-time module resolution when redis is optional
+      // eslint-disable-next-line no-new-func
+      const importAtRuntime = new Function(
+        'specifier',
+        'return import(specifier)'
+      ) as (specifier: string) => Promise<{
+        createClient: (options: unknown) => RedisClient;
+      }>;
+      const redis = await importAtRuntime('redis');
       
       this.client = redis.createClient({
         url: redisUrl,

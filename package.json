@@ -31,7 +31,7 @@
     "docker:dev": "docker compose --profile dev up",
     "docker:prod": "docker compose --profile prod up --build",
     "release:check": "npx semantic-release --dry-run",
-    "prepare": "husky install || true"
+    "prepare": "node -e \"try { require('husky').install(); } catch (_) {}\""
   },
   "dependencies": {
     "@react-three/drei": "^10.7.7",
