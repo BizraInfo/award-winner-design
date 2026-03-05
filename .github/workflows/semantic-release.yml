@@ -12,12 +12,9 @@
 name: Semantic Release
 
 on:
-  push:
-    branches:
-      - main
-    paths-ignore:
-      - '**.md'
-      - 'docs/**'
+  # Disabled auto-trigger — manual release only until stabilized
+  # push:
+  #   branches: [main]
   workflow_dispatch:
     inputs:
       dry_run:
@@ -31,7 +28,7 @@ on:
 
 env:
   NODE_VERSION: '20'
-  PNPM_VERSION: '9'
+  PNPM_VERSION: '10'
 
 permissions:
   contents: write

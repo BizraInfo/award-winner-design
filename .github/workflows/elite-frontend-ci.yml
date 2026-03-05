@@ -13,11 +13,12 @@
 name: Elite Frontend CI
 
 on:
-  push:
-    branches: [main, develop, 'release/**', 'feature/**']
-  pull_request:
-    branches: [main, develop]
-    types: [opened, synchronize, reopened, ready_for_review]
+  # Disabled auto-trigger — consolidated into ci.yml
+  # push:
+  #   branches: [main, develop, 'release/**', 'feature/**']
+  # pull_request:
+  #   branches: [main, develop]
+  #   types: [opened, synchronize, reopened, ready_for_review]
   workflow_dispatch:
     inputs:
       skip_e2e:
@@ -34,7 +35,7 @@ on:
 # =============================================================================
 env:
   NODE_VERSION: '20'
-  PNPM_VERSION: '9'
+  PNPM_VERSION: '10'
   # Quality thresholds
   COVERAGE_THRESHOLD: 80
   BUNDLE_SIZE_LIMIT_KB: 300
