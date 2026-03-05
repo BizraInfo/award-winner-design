@@ -248,8 +248,6 @@ jobs:
 
       - name: Build Application
         run: pnpm build
-        env:
-          ANALYZE: true
 
       - name: Analyze Bundle Size
         run: |

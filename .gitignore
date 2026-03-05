@@ -25,6 +25,7 @@ build/
 coverage/
 .nyc_output/
 playwright-report/
+playwright-results.json
 test-results/
 
 # Build artifacts

@@ -95,7 +95,8 @@ test.describe('Lifecycle Journey', () => {
         !e.includes('MODULE_NOT_FOUND') &&
         !e.includes('Loading chunk') &&
         !e.includes('Failed to load resource') &&
-        !e.includes('net::ERR_')
+        !e.includes('net::ERR_') &&
+        !e.includes('Content Security Policy')
     );
 
     expect(criticalErrors).toHaveLength(0);

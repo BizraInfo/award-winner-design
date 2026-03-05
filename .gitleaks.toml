@@ -1,0 +1,7 @@
+[allowlist]
+  description = "Allowlisted test fixtures and non-secret values"
+
+  paths = [
+    '''tests/unit/security/api-auth\.test\.ts''',
+    '''tests/unit/security/csrf-protection\.test\.ts''',
+  ]
