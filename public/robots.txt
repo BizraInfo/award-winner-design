@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /_next/
+
+Sitemap: https://bizra.ai/sitemap.xml
+
+Host: https://bizra.ai

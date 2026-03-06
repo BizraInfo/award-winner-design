@@ -253,15 +253,31 @@ export interface LegacyRecord {
 }
 
 // ============================================
+// TEACH CONFIG (from onboarding flow)
+// ============================================
+export interface TeachConfig {
+  work_schedule: string
+  primary_tools: string[]
+  communication_pref: string
+  priority_domains: string[]
+  autonomy: string
+}
+
+// ============================================
 // MAIN STATE INTERFACE
 // ============================================
 interface LifecycleState {
   // Current phase
   phase: LifecyclePhase
-  
+
+  // Sovereign identity
+  userName: string
+  nodeId: string
+  teachConfig: TeachConfig
+
   // Phase 2: Seed Test
   seedProfile: SeedTestProfile
-  
+
   // Phase 3: PAT
   patAgents: PATAgent[]
   patOnboardComplete: boolean
@@ -327,10 +343,15 @@ interface LifecycleActions {
   recordSkill: (skill: string) => void
   recordProject: (project: string) => void
 
+  // Sovereign identity
+  setUserName: (name: string) => void
+  setNodeId: (id: string) => void
+  setTeachConfig: (config: TeachConfig) => void
+
   // Onboarding
   setOnboardingStep: (step: number) => void
   completeOnboarding: () => void
-  
+
   // Reset
   resetLifecycle: () => void
 }
@@ -387,8 +408,19 @@ const initialLegacyRecord: LegacyRecord = {
   milestones: []
 }
 
+const initialTeachConfig: TeachConfig = {
+  work_schedule: "8:00-18:00",
+  primary_tools: [],
+  communication_pref: "Concise bullet points",
+  priority_domains: [],
+  autonomy: "Auto low-risk, ask high-risk",
+}
+
 const initialState: LifecycleState = {
   phase: "FIRST_ENCOUNTER",
+  userName: "",
+  nodeId: "",
+  teachConfig: initialTeachConfig,
   seedProfile: initialSeedProfile,
   patAgents: DEFAULT_PAT_AGENTS,
   patOnboardComplete: false,
@@ -805,6 +837,11 @@ export const useLifecycleStore = create<LifecycleState & LifecycleActions>()(
           }
         })),
 
+        // Sovereign identity
+        setUserName: (name) => set({ userName: name }),
+        setNodeId: (id) => set({ nodeId: id }),
+        setTeachConfig: (config) => set({ teachConfig: config }),
+
         // Onboarding
         setOnboardingStep: (step) => set({ onboardingStep: step }),
         
@@ -816,6 +853,7 @@ export const useLifecycleStore = create<LifecycleState & LifecycleActions>()(
         // Reset
         resetLifecycle: () => set({
           ...initialState,
+          teachConfig: { ...initialTeachConfig },
           patAgents: DEFAULT_PAT_AGENTS.map(a => ({ ...a }))
         })
       }),
@@ -830,6 +868,9 @@ export const useLifecycleStore = create<LifecycleState & LifecycleActions>()(
         },
         partialize: (state) => ({
           phase: state.phase,
+          userName: state.userName,
+          nodeId: state.nodeId,
+          teachConfig: state.teachConfig,
           // Exclude sensitive fields from seedProfile (primaryStressor)
           seedProfile: {
             ...state.seedProfile,
@@ -853,6 +894,8 @@ export const useLifecycleStore = create<LifecycleState & LifecycleActions>()(
 
 // Convenience selectors
 export const useLifecyclePhase = () => useLifecycleStore(s => s.phase)
+export const useUserName = () => useLifecycleStore(s => s.userName)
+export const useTeachConfig = () => useLifecycleStore(s => s.teachConfig)
 export const useSeedProfile = () => useLifecycleStore(s => s.seedProfile)
 export const usePATAgents = () => useLifecycleStore(s => s.patAgents)
 export const useSevenDayPlan = () => useLifecycleStore(s => s.sevenDayPlan)

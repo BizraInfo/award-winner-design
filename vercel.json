@@ -2,5 +2,13 @@
   "framework": "nextjs",
   "buildCommand": "next build",
   "installCommand": "pnpm install --frozen-lockfile",
-  "outputDirectory": ".next"
+  "outputDirectory": ".next",
+  "headers": [
+    {
+      "source": "/api/:path*",
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex" }
+      ]
+    }
+  ]
 }

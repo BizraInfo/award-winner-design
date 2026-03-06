@@ -1,13 +1,19 @@
 import type { Metadata } from "next"
 import { Inter, Playfair_Display, Amiri, Cinzel } from 'next/font/google'
+import { JetBrains_Mono } from 'next/font/google'
 import { GlobalErrorBoundary } from "@/components/infrastructure/GlobalErrorBoundary"
 import { PerformanceObserver } from "@/components/infrastructure/PerformanceObserver"
-import { SystemHealth } from "@/components/infrastructure/SystemHealth"
 import "./globals.css"
 
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-inter",
+  display: "swap",
+})
+
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ["latin"],
+  variable: "--font-jetbrains",
   display: "swap",
 })
 
@@ -43,10 +49,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="scroll-smooth">
-      <body className={`${inter.variable} ${playfair.variable} ${amiri.variable} ${cinzel.variable} font-sans antialiased bg-celestial-navy text-pure-white overflow-x-hidden`}>
+      <body className={`${inter.variable} ${playfair.variable} ${amiri.variable} ${cinzel.variable} ${jetbrainsMono.variable} font-sans antialiased bg-celestial-navy text-pure-white overflow-x-hidden`}>
         <GlobalErrorBoundary>
           <PerformanceObserver />
-          <SystemHealth />
           {children}
         </GlobalErrorBoundary>
       </body>
