@@ -14,7 +14,7 @@
 // ─── Types ───────────────────────────────────────────────────────
 
 export interface SovereignHealth {
-  status: "ready" | "degraded" | "unhealthy"
+  status: "ready" | "healthy" | "degraded" | "unhealthy"
   tier: string
   critical_subsystems: {
     evidence_ledger: string
@@ -115,11 +115,14 @@ export interface UserProfile {
   created_at: string
 }
 
-export interface TokenBalance {
+export interface TokenBalanceEntry {
   balance: number
-  pending: number
-  total_earned: number
-  zakat_contributed: number
+  staked: number
+}
+
+export interface TokenBalance {
+  account: string
+  balances: Record<string, TokenBalanceEntry>
 }
 
 export interface TokenSupply {
@@ -152,9 +155,146 @@ export interface TeachResult {
 }
 
 export interface CognitiveStatus {
+  cognitive_fusion_available: boolean
+  subsystems: {
+    moe_router: boolean
+    hrm_engine: boolean
+    hypergraph_rag: boolean
+    northstar_engine: boolean
+  }
+  hypergraph_store: boolean
+  memory_synthesizer: boolean
+  pattern_codebook: boolean
+}
+
+// ─── Memory Types (Build Contract §3 View 4, §10.4) ──────────────
+
+export interface MemoryStats {
+  total_records: number
+  active_records: number
+  archived_records: number
+  deleted_records: number
+  indexed_vectors: number
+  hnsw_capacity: number
+  sqlite_path: string
+  hnsw_path: string
+}
+
+export interface MemoryProfile {
+  // Semantic continuity
+  preferred_domains: string[]
+  work_hours: { start: number; end: number } | null
+  vocabulary: string[]
+  // Procedural continuity
+  compiled_reflexes: {
+    pattern: string
+    avg_ihsan: number
+    execution_count: number
+    avg_latency_ms: number
+  }[]
+  near_compile_patterns: {
+    pattern: string
+    count: number
+    threshold: number
+  }[]
+}
+
+// ─── Verifier Response (uniform shape for all /v1/verify/* endpoints) ──
+
+export interface VerifierResponse {
+  decision: "APPROVED" | "REJECTED" | "QUARANTINED"
+  reason_codes: string[]
+  receipt_id: string
+  receipt_signature: string
+  artifacts: Record<string, unknown>
+}
+
+// ─── Terminal v1 Types (Build Contract §5, §8) ─────────────────
+
+export type TerminalStateName =
+  | "boot"
+  | "ready"
+  | "mission_drafting"
+  | "permission_review"
+  | "executing"
+  | "awaiting_escalation"
+  | "completed"
+  | "failed_recoverably"
+  | "blocked_constitutionally"
+
+export type ExecutionPathLabel = "system_1" | "system_2" | "mixed"
+
+export interface TerminalState {
+  state: TerminalStateName
+  execution_path: ExecutionPathLabel
+  mission_id: string
+}
+
+export interface BriefingContext {
+  time_since_last_mission_s: number
+  active_project: string
+  last_mission_summary: string
+  near_compile_patterns: string[]
+  quality_trend: "improving" | "stable" | "declining"
+  next_action_suggestion: string
+  wallet_snapshot: { seed?: number; bloom?: number }
+}
+
+export interface WalletDelta {
+  seed: number
+  bloom: number
+}
+
+export interface ReflexDelta {
+  compiled: boolean
+  near_compile: boolean
+  compile_count: number
+  threshold: number
+}
+
+export interface MemoryDelta {
+  episodic: number
+  semantic: number
+  procedural: number
+}
+
+export interface ChannelRecord {
+  channel: string
+  success: boolean
+  duration_ms: number
+}
+
+export interface MissionReceipt {
+  mission_id: string
+  receipt_id: string
+  status: "COMPLETE" | "PARTIAL" | "FAILED" | "BLOCKED"
+  synthesis: string
+  ihsan_score: number
+  snr_score: number
+  duration_ms: number
+  channels_executed: ChannelRecord[]
+  execution_path: ExecutionPathLabel
+  wallet_delta: WalletDelta
+  reflex_delta: ReflexDelta
+  memory_delta: MemoryDelta
+  hash_chain_ref: string
+  action_count: number
+  reflex_pattern: string
+  reflex_latency_ms: number
+  comparison_s2_avg_ms: number
+}
+
+export interface ConstitutionalStatus {
   status: string
-  active_agents: number
-  memory_usage_mb: number
+  wallets: number
+  events: number
+  reflexes: number
+  pending_receipts: number
+  pending_proposals: number
+  network_gini: number
+  network_asabiyyah: number
+  last_tick_timestamp: number | null
+  tick_interval_s: number
 }
 
 // ─── Circuit Breaker ─────────────────────────────────────────────
@@ -233,9 +373,10 @@ async function request<T>(
     auth?: boolean
     retries?: number
     dedupe?: boolean
+    headers?: Record<string, string>
   },
 ): Promise<T> {
-  const { body, auth = false, retries = 2, dedupe = method === "GET" } = options ?? {}
+  const { body, auth = false, retries = 2, dedupe = method === "GET", headers: extraHeaders } = options ?? {}
 
   // Circuit breaker check
   if (!breaker.canRequest()) {
@@ -257,6 +398,12 @@ async function request<T>(
     if (auth) {
       const token = getToken()
       if (token) headers["Authorization"] = `Bearer ${token}`
+    }
+
+    if (extraHeaders) {
+      for (const [k, v] of Object.entries(extraHeaders)) {
+        headers[k] = v
+      }
     }
 
     try {
@@ -333,10 +480,11 @@ export const sovereign = {
   healthDeep: () => request<HealthDeep>("GET", "health/deep"),
   status: () => request<{ status: string }>("GET", "status"),
 
-  // Seed Engine (2 endpoints)
+  // Seed Engine (2 endpoints — policy: AUTHENTICATED)
   seed: {
-    potential: () => request<SeedPotential>("GET", "seed/potential"),
-    episodes: () => request<{ episodes: SeedEpisode[] }>("GET", "seed/episodes"),
+    potential: () => request<SeedPotential>("GET", "seed/potential", { auth: true }),
+    episodes: () =>
+      request<{ count: number; episodes: SeedEpisode[] }>("GET", "seed/episodes", { auth: true }),
   },
 
   // Node (2 endpoints)
@@ -345,12 +493,14 @@ export const sovereign = {
     lifecycle: () => request<LifecycleStage>("GET", "node/lifecycle", { auth: true }),
   },
 
-  // Network (2 endpoints)
+  // Network (2 endpoints — authenticated)
   network: {
     effect: (nodes = 1000) =>
-      request<NetworkEffect>("GET", `network/effect?nodes=${nodes}`),
+      request<NetworkEffect>("GET", `network/effect?nodes=${nodes}`, { auth: true }),
     milestones: () =>
-      request<{ milestones: NetworkMilestone[] }>("GET", "network/milestones"),
+      request<{ milestones: NetworkMilestone[] }>("GET", "network/milestones", {
+        auth: true,
+      }),
   },
 
   // Auth (3 endpoints)
@@ -379,9 +529,9 @@ export const sovereign = {
     supply: () => request<TokenSupply>("GET", "token/supply"),
   },
 
-  // Mission (1 endpoint)
-  mission: (payload: { objective: string; context?: Record<string, unknown> }) =>
-    request<MissionResult>("POST", "mission", { body: payload, auth: true }),
+  // Mission — alias for terminal.plan (golden path is POST /v1/plan)
+  mission: (payload: { description: string; source?: string }) =>
+    request<MissionReceipt>("POST", "plan", { body: payload, auth: true }),
 
   // Onboarding (2 endpoints)
   onboarding: {
@@ -393,6 +543,30 @@ export const sovereign = {
       }),
   },
 
+  // Constitutional (2 endpoints — Build Contract §5)
+  constitutional: {
+    status: () =>
+      request<ConstitutionalStatus>("GET", "constitutional/status", { auth: true }),
+  },
+
+  // Terminal (3 endpoints — Build Contract §4, §5)
+  terminal: {
+    state: (sessionId?: string) =>
+      request<TerminalState>("GET", "terminal/state", {
+        auth: true,
+        headers: sessionId ? { "X-Session-ID": sessionId } : undefined,
+      }),
+    briefing: () =>
+      request<BriefingContext>("GET", "terminal/briefing", { auth: true }),
+    plan: (payload: { description: string; source?: string }) =>
+      request<MissionReceipt>("POST", "plan", { body: payload, auth: true }),
+  },
+
+  // Memory (2 endpoints — authenticated)
+  memory: {
+    stats: () => request<MemoryStats>("GET", "memory/stats", { auth: true }),
+  },
+
   // Cognitive (1 endpoint)
   cognitive: {
     status: () => request<CognitiveStatus>("GET", "cognitive/status"),
@@ -401,16 +575,18 @@ export const sovereign = {
   // Metrics (1 endpoint)
   metrics: () => request<string>("GET", "metrics"),
 
-  // Verify (3 endpoints — public, no auth)
+  // Verify (3 endpoints — public, no auth, POST per backend)
+  // All return uniform VerifierResponse: {decision, reason_codes, receipt_id, receipt_signature, artifacts}
   verify: {
-    genesis: () => request<{ valid: boolean; hash: string }>("GET", "verify/genesis"),
+    genesis: () => request<VerifierResponse>("POST", "verify/genesis"),
     envelope: (hash: string) =>
-      request<{ valid: boolean }>("GET", `verify/envelope?hash=${hash}`),
+      request<VerifierResponse>("POST", "verify/envelope", {
+        body: { hash },
+      }),
     receipt: (hash: string) =>
-      request<{ valid: boolean; receipt: unknown }>(
-        "GET",
-        `verify/receipt?hash=${hash}`,
-      ),
+      request<VerifierResponse>("POST", "verify/receipt", {
+        body: { hash },
+      }),
   },
 
   // Utilities

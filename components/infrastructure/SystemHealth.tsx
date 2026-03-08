@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { HttpClient } from '@/lib/data-fetching';
+import { SovereignDot } from './SovereignStatus';
 
 interface HealthCheckResult {
   name: string;
@@ -75,6 +76,7 @@ export function SystemHealth() {
         <span className="text-xs font-mono text-slate-300">
           KERNEL: {health.status.toUpperCase()}
         </span>
+        <SovereignDot />
         <span className="text-[10px] text-slate-500 border-l border-slate-700 pl-2 ml-1">
           v{health.version}
         </span>

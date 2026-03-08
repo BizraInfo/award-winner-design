@@ -18,7 +18,7 @@ const SOVEREIGN_URL =
   process.env.SCAFFOLD_API_URL ||
   "http://localhost:8000";
 
-const UPSTREAM_TIMEOUT_MS = 10_000;
+const UPSTREAM_TIMEOUT_MS = 30_000;
 
 // Routes that are publicly accessible (no auth required)
 // Public paths that don't require auth — matches api_exposure_policy.py
@@ -74,6 +74,12 @@ async function proxyRequest(
   const userId = request.headers.get("x-bizra-user-id");
   if (userId) {
     headers.set("X-Bizra-User-Id", userId);
+  }
+
+  // Forward terminal session ID for state machine isolation
+  const sessionId = request.headers.get("x-session-id");
+  if (sessionId) {
+    headers.set("X-Session-ID", sessionId);
   }
 
   const controller = new AbortController();

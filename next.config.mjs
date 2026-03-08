@@ -9,14 +9,15 @@ const getContentSecurityPolicy = () => {
   if (isProduction) {
     return [
       "default-src 'self'",
-      // Production: Use nonces or hashes instead of unsafe-inline
-      // Three.js/R3F must be bundled without eval() for production
-      "script-src 'self' blob:",
-      // For styled-components in production, consider using a nonce-based approach
-      // or configure styled-components to extract CSS at build time
-      "style-src 'self'",
+      // Next.js requires unsafe-inline for hydration scripts and inline data.
+      // TODO: migrate to nonce-based CSP via next/headers middleware.
+      "script-src 'self' 'unsafe-inline' blob:",
+      // Inline styles used extensively by sovereign components (TrustSite, design-tokens).
+      // TODO: migrate inline styles to Tailwind classes, then remove unsafe-inline.
+      "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: blob: https:",
-      "font-src 'self' data:",
+      // Google Fonts loaded from layout.tsx via next/font
+      "font-src 'self' data: https://fonts.gstatic.com",
       "connect-src 'self' https: wss:",
       "worker-src 'self' blob:",
       "frame-ancestors 'none'",

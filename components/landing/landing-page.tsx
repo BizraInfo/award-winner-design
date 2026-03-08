@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react"
 import { useLifecycleStore } from "@/store/use-lifecycle-store"
 import { Sparkles, ArrowRight, ShieldCheck, Heart, Leaf, Star, ChevronDown, Monitor, Mail, ExternalLink } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
+import { SovereignStatus } from "@/components/infrastructure/SovereignStatus"
 
 // GSAP and Chart.js are lazy-loaded in useEffect hooks to reduce initial bundle (~300KB)
 let _gsap: Promise<{ gsap: typeof import("gsap").default; ScrollTrigger: typeof import("gsap/ScrollTrigger").ScrollTrigger }> | null = null
@@ -100,9 +101,12 @@ function Navigation() {
         <span className="cursor-pointer hover:text-radiant-gold transition-colors" onClick={() => document.getElementById('slide-3')?.scrollIntoView({ behavior: 'smooth' })}>Architecture</span>
         <span className="cursor-pointer hover:text-radiant-gold transition-colors" onClick={() => document.getElementById('slide-5')?.scrollIntoView({ behavior: 'smooth' })}>Evidence</span>
       </div>
-      <a href="mailto:m.beshr@bizra.info" className="text-xs border border-radiant-gold/50 px-6 py-2 rounded-full text-radiant-gold hover:bg-radiant-gold hover:text-celestial-navy transition-all duration-300">
-        INVEST
-      </a>
+      <div className="flex items-center gap-4">
+        <SovereignStatus />
+        <a href="mailto:m.beshr@bizra.info" className="text-xs border border-radiant-gold/50 px-6 py-2 rounded-full text-radiant-gold hover:bg-radiant-gold hover:text-celestial-navy transition-all duration-300">
+          INVEST
+        </a>
+      </div>
     </nav>
   )
 }

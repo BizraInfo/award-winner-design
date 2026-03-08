@@ -191,6 +191,18 @@ function attachRateLimitHeaders(
 }
 
 export async function middleware(req: NextRequest) {
+  // Domain redirect: bizra.info → bizra.ai (301 permanent)
+  // API routes serve from both domains to avoid breaking clients.
+  const host = req.headers.get('host') ?? '';
+  if (
+    host.includes('bizra.info') &&
+    !isApiRequest(req.nextUrl.pathname)
+  ) {
+    const target = new URL(req.nextUrl.pathname, 'https://bizra.ai');
+    target.search = req.nextUrl.search;
+    return NextResponse.redirect(target, 301);
+  }
+
   if (!isApiRequest(req.nextUrl.pathname)) {
     return NextResponse.next();
   }
@@ -272,7 +284,10 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/api/:path*'],
+  matcher: [
+    // Match all routes except Next.js internals and static assets
+    '/((?!_next/static|_next/image|favicon.ico|manifest.json|robots.txt|sitemap.xml|og-image.png).*)',
+  ],
 };
 
 // Test-only helpers
