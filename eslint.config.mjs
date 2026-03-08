@@ -1,6 +1,7 @@
 import js from "@eslint/js"
 import tseslint from "typescript-eslint"
 import nextPlugin from "@next/eslint-plugin-next"
+import reactHooksPlugin from "eslint-plugin-react-hooks"
 
 // Flat config for Next.js + TypeScript
 export default [
@@ -30,11 +31,14 @@ export default [
   ...tseslint.configs.recommended,
   {
     plugins: {
-      "@next/next": nextPlugin
+      "@next/next": nextPlugin,
+      "react-hooks": reactHooksPlugin
     },
     rules: {
       ...nextPlugin.configs.recommended.rules,
       ...nextPlugin.configs["core-web-vitals"].rules,
+      "react-hooks/rules-of-hooks": "error",
+      "react-hooks/exhaustive-deps": "warn",
       "no-console": "warn",
       "prefer-const": "warn",
       "@typescript-eslint/no-unused-vars": ["warn", { "argsIgnorePattern": "^_" }],
