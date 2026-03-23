@@ -386,7 +386,7 @@ export function EvidencePack() {
             {[
               "HF Deploy: Consciousness-safe model deployment ready",
               "Publication: NeurIPS/ICML submission packages prepared",
-              "Scale: TMP v0.2 Advanced Mathematics implementation",
+              "Scale: BIZRA v0.89 Advanced Mathematics implementation",
               "Research: Consciousness evolution monitoring operational",
             ].map((item, i) => (
               <li key={i} className="flex items-start gap-4 text-gray-400 group-hover:text-gray-300 transition-colors">

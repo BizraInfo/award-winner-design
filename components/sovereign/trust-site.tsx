@@ -31,12 +31,12 @@ export function TrustSite() {
 
   const layers = [
     { n: "Human Seed", c: "\u0627\u0644\u0631\u0633\u0627\u0644\u0629 + \u0627\u0644\u0628\u0630\u0631\u0629", t: "\u2014", col: G },
-    { n: "Sovereign Node", c: "identity_genesis.py", t: "332", col: BL },
-    { n: "Agentic Dev", c: "mission_pipeline.py", t: "151", col: GR },
-    { n: "Verification", c: "evidence_receipt.py", t: "50+", col: YL },
-    { n: "Learning", c: "seed_engine.py", t: "46", col: CY },
-    { n: "Economic", c: "algorithms.py", t: "100+", col: PU },
-    { n: "Civilizational", c: "federation/", t: "60+", col: RS },
+    { n: "Sovereign Node", c: "12 agents (Ed25519)", t: "654 commits", col: BL },
+    { n: "Mission Pipeline", c: "10 stages", t: "12,680 tests", col: GR },
+    { n: "Verification", c: "Z3 + BLAKE3", t: "18 proofs", col: YL },
+    { n: "Learning", c: "FAISS + reflexes", t: "84,795 vectors", col: CY },
+    { n: "Economic", c: "SEED + Zakat + Gini", t: "22 SEED", col: PU },
+    { n: "URP Membrane", c: "Node→URP→Sea", t: "4 properties", col: RS },
   ]
 
   return (
