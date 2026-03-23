@@ -118,7 +118,7 @@ export function GlassInterface() {
                 {displayHours.toLocaleString()} <span className="text-lg font-sans text-white/40">HRS</span>
               </div>
               <p className="text-white/40 text-[10px] mt-2 tracking-widest uppercase">
-                RAMADAN 2023 — PRESENT · 15,000+ HOURS · 654 COMMITS
+                RAMADAN 2023 — PRESENT · 15,000+ HOURS · 654 COMMITS · 12,680 TESTS
               </p>
             </div>
 

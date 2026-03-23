@@ -8,7 +8,7 @@ const CACHE_TTL_MS = 1500;
 const DEFAULT_SCAFFOLD_API =
   process.env.SCAFFOLD_API_URL ||
   process.env.BIZRA_SCAFFOLD_API_URL ||
-  "http://localhost:8000";
+  "http://localhost:9740";
 
 type ScaffoldHealth = {
   status?: string;
