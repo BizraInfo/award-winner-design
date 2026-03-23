@@ -22,7 +22,7 @@ type Status = "IDLE" | "RUNNING" | "SECURE"
 
 const SIMULATION_SEQUENCE = [
   { t: 500, msg: "Initializing BIZRA Genesis Node (Rust Core)...", type: "info" as const },
-  { t: 800, msg: "Loading TMP v0.1 Consciousness Safety Framework...", type: "info" as const },
+  { t: 800, msg: "Loading BIZRA v0.88.1 Consciousness Safety Framework...", type: "info" as const },
   { t: 1200, msg: "Starting Aegis Consensus Engine...", type: "info" as const },
   { t: 1600, msg: "Thompson Sampling Router: ACTIVE (Pareto 5%)", type: "success" as const },
   { t: 2000, msg: "Verifying Ed25519 Cryptographic Bridge...", type: "info" as const },

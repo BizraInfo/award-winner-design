@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils"
 const ARCHITECTURE_LAYERS = [
   {
     id: "L0",
-    name: "TMP v0.1 RSIC",
+    name: "BIZRA v0.88.1 RSIC",
     icon: Shield,
     desc: "Consciousness Safety Core",
     details: {

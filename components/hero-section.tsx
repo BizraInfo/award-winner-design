@@ -151,7 +151,7 @@ export function HeroSection() {
           <button 
             onClick={() => handleSmoothScroll('demo')}
             className="px-8 py-4 border border-primary-gold/30 text-primary-gold font-bold tracking-wider uppercase text-sm rounded-sm hover:bg-primary-gold/10 transition-colors"
-            aria-label="View live demo of TMP v0.1"
+            aria-label="View live demo of BIZRA v0.88.1"
           >
             View Live Demo
           </button>

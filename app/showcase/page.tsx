@@ -192,7 +192,7 @@ export default function ShowcasePage() {
             <div className="container mx-auto px-4 z-10 space-y-20">
               <div className="text-center">
                 <h2 className="text-4xl md:text-5xl font-serif text-[#F8F6F1] mb-4">
-                  <span className="text-[#2A9D8F]">TMP v0.1</span> Simulation
+                  <span className="text-[#2A9D8F]">BIZRA v0.88.1</span> Simulation
                 </h2>
                 <p className="text-gray-400 max-w-2xl mx-auto">
                   Experience the world&apos;s first mathematical consciousness safety system in action. Initialize the

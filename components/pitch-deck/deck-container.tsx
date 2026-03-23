@@ -187,7 +187,7 @@ export function DeckContainer() {
               <ChevronDown className="w-16 h-16 text-primary-gold mx-auto opacity-50" strokeWidth={1} />
             </div>
             <p className="text-sm text-gray-500 uppercase tracking-[0.4em] mt-8 border-t border-white/10 pt-8 inline-block">
-              Scroll to Initialize TMP v0.1
+              Scroll to Initialize BIZRA v0.88.1
             </p>
           </div>
         </Slide>
