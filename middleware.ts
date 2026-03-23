@@ -290,8 +290,8 @@ export async function middleware(req: NextRequest) {
 
 export const config = {
   matcher: [
-    // Match all routes except Next.js internals and static assets
-    '/((?!_next/static|_next/image|favicon.ico|manifest.json|robots.txt|sitemap.xml|og-image.png).*)',
+    // Match all routes except Next.js internals, static assets, and public API routes
+    '/((?!_next/static|_next/image|favicon.ico|manifest.json|robots.txt|sitemap.xml|og-image.png|api/scaffold|api/health|api/ethics).*)',
   ],
 };
 
