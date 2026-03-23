@@ -1,5 +1,6 @@
 import crypto from "crypto";
 import fs from "fs/promises";
+import path from "path";
 
 import { resolveScaffoldPath } from "./paths";
 
@@ -14,8 +15,19 @@ function sha256(input: string | Buffer): string {
 }
 
 export async function loadScaffoldMetrics(): Promise<ScaffoldMetricsPayload> {
-  const sourcePath = resolveScaffoldPath("evidence", "metrics", "latest.json");
-  const contents = await fs.readFile(sourcePath, "utf-8");
+  const publicPath = path.join(process.cwd(), "public", "data", "metrics.json");
+  const scaffoldPath = resolveScaffoldPath("evidence", "metrics", "latest.json");
+
+  let sourcePath = scaffoldPath;
+  let contents: string;
+
+  try {
+    contents = await fs.readFile(publicPath, "utf-8");
+    sourcePath = publicPath;
+  } catch {
+    contents = await fs.readFile(scaffoldPath, "utf-8");
+  }
+
   return {
     sourcePath,
     sourceHash: sha256(contents),
