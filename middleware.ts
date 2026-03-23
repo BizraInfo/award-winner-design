@@ -28,6 +28,11 @@ const ACCESS_TOKEN_COOKIE = 'access_token';
 const PUBLIC_API_PATHS = new Set<string>([
   '/api/auth/login',
   '/api/csrf-token',
+  '/api/health',
+  '/api/scaffold/health',
+  '/api/scaffold/metrics',
+  '/api/scaffold/evidence',
+  '/api/ethics',
 ]);
 
 const API_RATE_LIMIT = { max: 60, windowMs: 60_000 };
