@@ -1,6 +1,7 @@
 "use client"
 
 import { useMemo, useState } from "react"
+import Link from "next/link"
 import { motion } from "framer-motion"
 import {
   AM,
@@ -102,9 +103,9 @@ export default function WalletPage() {
   return (
     <div style={{ minHeight: "100vh", background: BG, color: TXT, fontFamily: "var(--font-jetbrains), monospace" }}>
       <div style={{ position: "sticky", top: 0, zIndex: 40, display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 24px", borderBottom: `1px solid ${LINE}`, background: `${BG}ee`, backdropFilter: "blur(16px)" }}>
-        <a href="/" style={{ color: G, textDecoration: "none", letterSpacing: 3, fontSize: 11, fontWeight: 600 }}>BIZRA</a>
+        <Link href="/" style={{ color: G, textDecoration: "none", letterSpacing: 3, fontSize: 11, fontWeight: 600 }}>BIZRA</Link>
         <div style={{ display: "flex", gap: 14, fontSize: 9, color: MUT }}>
-          <a href="/" style={{ color: MUT, textDecoration: "none" }}>HOME</a>
+          <Link href="/" style={{ color: MUT, textDecoration: "none" }}>HOME</Link>
           <a href="/genesis" style={{ color: MUT, textDecoration: "none" }}>GENESIS</a>
           <a href="/terminal" style={{ color: MUT, textDecoration: "none" }}>TERMINAL</a>
         </div>

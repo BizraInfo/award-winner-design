@@ -276,7 +276,7 @@ export function Assembly({ userName, config, onDone }: { userName: string; confi
       await delay(500); if (cancelled) return; onDone()
     })()
     return () => { cancelled = true }
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  }, []) // eslint-disable-line
 
   return (
     <div style={{

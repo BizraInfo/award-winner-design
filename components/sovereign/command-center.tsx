@@ -53,7 +53,7 @@ export function CommandCenter() {
       setTimeout(() => add("NEXUS", `${SCHEDULED.filter(m => !m.auto).length} scheduled missions pending approval.`, "pro"), 3500)
     }, 6000)
     return () => clearTimeout(t)
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  }, []) // eslint-disable-line
 
   const exec = useCallback(async (task: string) => {
     if (!task.trim() || running) return
