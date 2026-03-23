@@ -84,7 +84,7 @@ export function TrustSite() {
           </F>
           <F d={1400}>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 16, marginTop: 48 }}>
-              {[{ v: "8,237", l: "Tests Passing" }, { v: "22", l: "Rust Crates" }, { v: "31+", l: "Days Live" }, { v: "0.95+", l: "Ihsan Floor" }].map((k, i) => (
+              {[{ v: "12,680", l: "Tests Passing" }, { v: "24", l: "Rust Crates" }, { v: "654+", l: "Commits" }, { v: "0.95+", l: "Ihsan Floor" }].map((k, i) => (
                 <div key={i} style={{ padding: "16px 18px", borderRadius: 16, background: "rgba(255,255,255,.025)", border: `1px solid ${LINE}`, backdropFilter: "blur(12px)" }}>
                   <div style={{ fontSize: 28, fontWeight: 800, letterSpacing: -1, color: G2 }}>{k.v}</div>
                   <div style={{ fontSize: 11, color: DIM, letterSpacing: 1.2, textTransform: "uppercase", marginTop: 4 }}>{k.l}</div>
