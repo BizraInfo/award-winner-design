@@ -36,7 +36,7 @@ export function LoadingScreen({ onComplete, autoAdvance = true }: LoadingScreenP
 
   // Update consciousness level based on agent count
   useEffect(() => {
-    const percentage = (agentCount / 72) * 100
+    const percentage = (agentCount / 12) * 100
     if (percentage < 25) {
       setConsciousnessLevel("Initializing...")
     } else if (percentage < 50) {
@@ -134,7 +134,7 @@ export function LoadingScreen({ onComplete, autoAdvance = true }: LoadingScreenP
       {/* Status Indicators */}
       <div className="absolute top-12 right-12 text-base text-[#D4AF37]/80 z-10">
         <div>
-          Agents Online: <span>{agentCount}</span>/72
+          Agents Online: <span>{agentCount}</span>/12
         </div>
       </div>
 
