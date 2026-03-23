@@ -41,7 +41,7 @@ describe('API middleware security enforcement', () => {
   });
 
   it('requires CSRF token on protected mutation requests', async () => {
-    const req = new NextRequest('http://localhost:3000/api/ethics', {
+    const req = new NextRequest('http://localhost:3000/api/metrics', {
       method: 'POST',
       headers: {
         authorization: `Bearer ${accessToken}`,
@@ -56,7 +56,7 @@ describe('API middleware security enforcement', () => {
 
   it('allows protected mutation when CSRF header and cookie match', async () => {
     const csrfValue = 'csrf-token-123';
-    const req = new NextRequest('http://localhost:3000/api/ethics', {
+    const req = new NextRequest('http://localhost:3000/api/metrics', {
       method: 'POST',
       headers: {
         authorization: `Bearer ${accessToken}`,
