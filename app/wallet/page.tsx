@@ -191,3 +191,20 @@ export default function WalletPage() {
                         {RARITY_LABELS[r.rarity]}
                       </span>
                     </div>
+                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: MUT }}>
+                      <span>Ihsan: <span style={{ color: r.ihsan >= 0.98 ? GR : r.ihsan >= 0.96 ? G : YL }}>{r.ihsan.toFixed(4)}</span></span>
+                      <span style={{ color: G }}>+{r.seed.toFixed(2)} SEED</span>
+                    </div>
+                    <div style={{ marginTop: 4, fontSize: 8, color: DIM, fontFamily: "monospace" }}>
+                      Receipt: {r.hash}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
