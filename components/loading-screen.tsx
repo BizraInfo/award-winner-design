@@ -22,10 +22,10 @@ export function LoadingScreen({ onComplete, autoAdvance = true }: LoadingScreenP
     const interval = setInterval(() => {
       setAgentCount((prev) => {
         const next = prev + Math.floor(Math.random() * 3) + 1
-        if (next >= 12) {
+        if (next >= 72) {
           clearInterval(interval)
           setIsComplete(true)
-          return 12
+          return 72
         }
         return next
       })

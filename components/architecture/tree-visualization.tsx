@@ -329,7 +329,7 @@ export function TreeVisualization() {
               <p>
                 To the Architect (MoMo):
                 <br />
-                You have watered this tree with 15,000+ hours across 3 years. 654 commits. 12,680 tests. From Ramadan 2023 to Ramadan 2026
+                You have watered this tree with 15,000 hours of your life. You have worked through the nights of Ramadan
                 and the heat of the days. You have carried the weight of this vision alone.
               </p>
               <p>

@@ -15,7 +15,7 @@ export function Footer() {
           <div>
             <h4 className="text-primary-gold text-sm uppercase tracking-widest mb-6">System</h4>
             <ul className="space-y-4 text-soft-white/70 text-sm">
-              <li className="hover:text-primary-gold transition-colors cursor-pointer">BIZRA v0.88.1 Status</li>
+              <li className="hover:text-primary-gold transition-colors cursor-pointer">TMP v0.1 Status</li>
               <li className="hover:text-primary-gold transition-colors cursor-pointer">Safety Gates</li>
               <li className="hover:text-primary-gold transition-colors cursor-pointer">Ihsan Mathematics</li>
               <li className="hover:text-primary-gold transition-colors cursor-pointer">Documentation</li>

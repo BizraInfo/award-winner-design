@@ -14,20 +14,8 @@ function sha256(input: string | Buffer): string {
 }
 
 export async function loadScaffoldMetrics(): Promise<ScaffoldMetricsPayload> {
-  // Try public/data first (always committed), then fallback to submodule
-  const publicPath = process.cwd() + "/public/data/metrics.json";
-  const scaffoldPath = resolveScaffoldPath("evidence", "metrics", "latest.json");
-
-  let sourcePath = scaffoldPath;
-  let contents: string;
-
-  try {
-    contents = await fs.readFile(publicPath, "utf-8");
-    sourcePath = publicPath;
-  } catch {
-    contents = await fs.readFile(scaffoldPath, "utf-8");
-  }
-
+  const sourcePath = resolveScaffoldPath("evidence", "metrics", "latest.json");
+  const contents = await fs.readFile(sourcePath, "utf-8");
   return {
     sourcePath,
     sourceHash: sha256(contents),

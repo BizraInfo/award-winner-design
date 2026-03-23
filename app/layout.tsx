@@ -3,7 +3,6 @@ import { Inter, Playfair_Display, Amiri, Cinzel } from 'next/font/google'
 import { JetBrains_Mono } from 'next/font/google'
 import { GlobalErrorBoundary } from "@/components/infrastructure/GlobalErrorBoundary"
 import { PerformanceObserver } from "@/components/infrastructure/PerformanceObserver"
-import { LiveStatsBar } from "@/components/sovereign/live-stats-bar"
 import "./globals.css"
 
 const inter = Inter({
@@ -54,7 +53,6 @@ export default function RootLayout({
         <GlobalErrorBoundary>
           <PerformanceObserver />
           {children}
-          <LiveStatsBar />
         </GlobalErrorBoundary>
       </body>
     </html>

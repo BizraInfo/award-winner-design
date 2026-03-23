@@ -16,7 +16,7 @@ export const dynamic = "force-dynamic";
 const SOVEREIGN_URL =
   process.env.SOVEREIGN_API_URL ||
   process.env.SCAFFOLD_API_URL ||
-  "http://localhost:9740";
+  "http://localhost:8000";
 
 const UPSTREAM_TIMEOUT_MS = 30_000;
 

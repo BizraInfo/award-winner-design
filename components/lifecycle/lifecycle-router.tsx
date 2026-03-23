@@ -27,7 +27,7 @@ import { CommandCenter } from "@/components/sovereign/command-center"
 export function LifecycleRouter() {
   const phase = useLifecyclePhase()
   const [mounted, setMounted] = useState(false)
-  const [showSplash, setShowSplash] = useState(true) // Always show splash first
+  const [showSplash, setShowSplash] = useState(false)
 
   const setPhase = useLifecycleStore(s => s.setPhase)
   const setUserName = useLifecycleStore(s => s.setUserName)
@@ -38,10 +38,17 @@ export function LifecycleRouter() {
 
   useEffect(() => { setMounted(true) }, [])
 
-  // Handle splash → content transition
+  // Handle splash → genesis transition
   const handleSplashDone = useCallback(() => {
     setShowSplash(false)
   }, [])
+
+  // When entering SEED_TEST, show splash first
+  useEffect(() => {
+    if (phase === "SEED_TEST" && !userName) {
+      setShowSplash(true)
+    }
+  }, [phase, userName])
 
   const handleGenesisDone = useCallback((name: string, id: string) => {
     setUserName(name)

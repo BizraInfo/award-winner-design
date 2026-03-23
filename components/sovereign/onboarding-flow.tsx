@@ -20,8 +20,6 @@ function F({ children, d = 0 }: { children: ReactNode; d?: number }) {
 // ============================
 // SPLASH SCREEN
 // ============================
-import { BizraSovereignLogo } from "./bizra-sovereign-logo"
-
 export function SplashScreen({ onStart }: { onStart: () => void }) {
   const [h, setH] = useState(false)
   return (
@@ -34,7 +32,12 @@ export function SplashScreen({ onStart }: { onStart: () => void }) {
         background: `radial-gradient(circle,${G},transparent)`, top: "15%", left: "25%", filter: "blur(60px)"
       }} />
       <F d={300}>
-        <BizraSovereignLogo size={160} />
+        <div style={{
+          width: 100, height: 100, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center",
+          border: `1.5px solid ${G}18`, boxShadow: `0 0 80px ${G}06`, marginBottom: 32
+        }}>
+          <div style={{ width: 48, height: 48, borderRadius: "50%", background: `radial-gradient(circle,${G}25,transparent)`, animation: "pulse 3s ease-in-out infinite" }} />
+        </div>
       </F>
       <F d={700}><div style={{ fontFamily: "var(--font-cinzel), serif", color: G, fontSize: 16, letterSpacing: 6, fontWeight: 600 }}>BIZRA</div></F>
       <F d={1000}><div style={{ fontSize: 8, color: DIMR, letterSpacing: 4, marginTop: 4 }}>SOVEREIGN AI OPERATING SYSTEM</div></F>

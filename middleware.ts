@@ -28,11 +28,6 @@ const ACCESS_TOKEN_COOKIE = 'access_token';
 const PUBLIC_API_PATHS = new Set<string>([
   '/api/auth/login',
   '/api/csrf-token',
-  '/api/health',
-  '/api/scaffold/health',
-  '/api/scaffold/metrics',
-  '/api/scaffold/evidence',
-  '/api/ethics',
 ]);
 
 const API_RATE_LIMIT = { max: 60, windowMs: 60_000 };
@@ -290,8 +285,8 @@ export async function middleware(req: NextRequest) {
 
 export const config = {
   matcher: [
-    // Match all routes except Next.js internals, static assets, and public API routes
-    '/((?!_next/static|_next/image|favicon.ico|manifest.json|robots.txt|sitemap.xml|og-image.png|api/scaffold|api/health|api/ethics).*)',
+    // Match all routes except Next.js internals and static assets
+    '/((?!_next/static|_next/image|favicon.ico|manifest.json|robots.txt|sitemap.xml|og-image.png).*)',
   ],
 };
 
