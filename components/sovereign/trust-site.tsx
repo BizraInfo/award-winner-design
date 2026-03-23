@@ -14,6 +14,8 @@ function F({ children, d = 0, s = {} }: { children: ReactNode; d?: number; s?: R
   )
 }
 
+import { LiveNetworkStats } from "./live-network-stats"
+
 export function TrustSite() {
   const setPhase = useLifecycleStore(s => s.setPhase)
   const [hov, setHov] = useState(false)
@@ -28,6 +30,7 @@ export function TrustSite() {
   }, [])
 
   const onEnter = () => setPhase("SEED_TEST")
+  const showStats = true
 
   const layers = [
     { n: "Human Seed", c: "\u0627\u0644\u0631\u0633\u0627\u0644\u0629 + \u0627\u0644\u0628\u0630\u0631\u0629", t: "\u2014", col: G },
@@ -137,7 +140,10 @@ export function TrustSite() {
           ))}
         </div>
 
-        {/* CTA */}
+        {/* Live Stats */}
+      <LiveNetworkStats />
+
+      {/* CTA */}
         <div style={{ textAlign: "center", padding: "48px 0" }}>
           <div style={{ fontFamily: "var(--font-amiri), serif", fontSize: 20, color: `${G}50`, direction: "rtl", marginBottom: 16 }}>{"\u0643\u0644 \u0628\u0630\u0631\u0629 \u062A\u062D\u0645\u0644 \u0641\u064A \u062F\u0627\u062E\u0644\u0647\u0627 \u0645\u062E\u0637\u0637 \u063A\u0627\u0628\u0629 \u0628\u0623\u0643\u0645\u0644\u0647\u0627"}</div>
           <button onClick={onEnter} style={{
