@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback, type ReactNode } from "react"
 import { useLifecycleStore } from "@/store/use-lifecycle-store"
 import type { TeachConfig } from "@/store/use-lifecycle-store"
+import { generateSovereignKeypair, signWithSovereignKey } from "@/lib/crypto/sovereign-keygen"
 import { G, BG, GR, TXT, DIM, DIMR, LINE, PAT, SAT, CY, PU, TEACH_QUESTIONS } from "./design-tokens"
 
 const delay = (ms: number) => new Promise(r => setTimeout(r, ms))
@@ -68,6 +69,7 @@ export function SplashScreen({ onStart }: { onStart: () => void }) {
 export interface GenesisIdentity {
   nodeId: string
   publicKey: string
+  privateKeyJwk: JsonWebKey
   agentIds: string[]
   signature: string
   constitutionHash: string
@@ -87,12 +89,28 @@ export function GenesisFlow({ onDone }: { onDone: (name: string, identity: Genes
     if (!name.trim()) return
     setPh("gen")
     setError(null)
-    setLines(p => [...p, "Requesting genesis from sovereign endpoint..."])
+
+    // G1: Generate Ed25519 keypair client-side — private key never leaves the browser
+    setLines(p => [...p, "Generating Ed25519 keypair locally..."])
+    let keypair: Awaited<ReturnType<typeof generateSovereignKeypair>>
+    try {
+      keypair = await generateSovereignKeypair()
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e)
+      setError(`Key generation failed: ${msg}`)
+      setLines(p => [...p, `FAILED: Key generation — ${msg}`])
+      return
+    }
+    await delay(200)
+    setLines(p => [...p, `Ed25519 keypair generated  —  pk:${keypair.publicKeyHex.slice(0, 16)}…`])
+
+    // Register with genesis endpoint — send only public key
+    setLines(p => [...p, "Registering with sovereign endpoint..."])
     try {
       const res = await fetch("/api/genesis", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: name.trim() }),
+        body: JSON.stringify({ name: name.trim(), publicKey: keypair.publicKeyHex }),
       })
       if (!res.ok) {
         const err = await res.json().catch(() => ({ error: `HTTP ${res.status}` }))
@@ -102,23 +120,32 @@ export function GenesisFlow({ onDone }: { onDone: (name: string, identity: Genes
         nodeId: string
         publicKey: string
         constitutionHash: string
-        signature: string
         agentIds: string[]
         activatedAt: string
+        envelope: string
         steps: Array<{ label: string; detail: string; ok: boolean }>
       }
       for (const s of data.steps) {
         await delay(280)
         setLines(p => [...p, `${s.label}  —  ${s.detail}`])
       }
+
+      // G1: Sign the genesis envelope locally with the client's private key
+      await delay(200)
+      setLines(p => [...p, "Signing genesis envelope locally..."])
+      const signature = await signWithSovereignKey(keypair.privateKeyJwk, data.envelope)
+      await delay(200)
+      setLines(p => [...p, `Signed genesis envelope  —  sig:${signature.slice(0, 16)}…`])
+
       await delay(400)
       setLines(p => [...p, `Welcome, ${name.trim()}.`])
       await delay(600)
       onDone(name.trim(), {
         nodeId: data.nodeId,
         publicKey: data.publicKey,
+        privateKeyJwk: keypair.privateKeyJwk,
         agentIds: data.agentIds,
-        signature: data.signature,
+        signature,
         constitutionHash: data.constitutionHash,
         activatedAt: data.activatedAt,
       })
@@ -300,10 +327,13 @@ export function TeachSteps({ userName, onDone }: { userName: string; onDone: (co
 export function Assembly({ userName, config, onDone }: { userName: string; config: TeachConfig; onDone: () => void }) {
   const agentIds = useLifecycleStore(s => s.agentIds)
   const nodeId = useLifecycleStore(s => s.nodeId)
+  const publicKey = useLifecycleStore(s => s.publicKey)
+  const privateKeyJwk = useLifecycleStore(s => s.privateKeyJwk)
   const [booted, setBooted] = useState<string[]>([])
   const [sat, setSat] = useState(false)
   const [done, setDone] = useState(false)
   const [configLines, setConfigLines] = useState<string[]>([])
+  const [activationError, setActivationError] = useState<string | null>(null)
 
   useEffect(() => {
     let cancelled = false;
@@ -320,6 +350,43 @@ export function Assembly({ userName, config, onDone }: { userName: string; confi
         setBooted(p => [...p, id])
       }
       await delay(400); if (cancelled) return; setSat(true)
+
+      // G2: Activate node with client-signed receipt
+      if (nodeId && publicKey && privateKeyJwk) {
+        await delay(300); if (cancelled) return;
+        setConfigLines(p => [...p, "Signing activation receipt..."])
+        try {
+          const resourceSettings = { cpuShare: 20, gpuShare: 0, storageShare: 10, alwaysAvailable: true, availableHours: [0, 24] as [number, number] }
+          const receipt = JSON.stringify({
+            type: "node.activation.v1",
+            nodeId,
+            resourceSettings,
+            activatedAt: new Date().toISOString(),
+            constitutionVersion: "5.0.0-GENESIS",
+          })
+          const signature = await signWithSovereignKey(privateKeyJwk, receipt)
+          await delay(200); if (cancelled) return;
+          setConfigLines(p => [...p, `Receipt signed  —  sig:${signature.slice(0, 16)}…`])
+
+          const res = await fetch("/api/node/activate", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ nodeId, publicKey, resourceSettings, receipt, signature }),
+          })
+          if (!res.ok) {
+            const err = await res.json().catch(() => ({ error: `HTTP ${res.status}` }))
+            throw new Error(err.error || `Activation failed (${res.status})`)
+          }
+          const data = await res.json()
+          await delay(200); if (cancelled) return;
+          setConfigLines(p => [...p, `Node activated  —  mode:${data.signerMode}  verified:${data.verified}`])
+        } catch (e) {
+          const msg = e instanceof Error ? e.message : String(e)
+          if (!cancelled) setActivationError(msg)
+          setConfigLines(p => [...p, `Activation warning: ${msg}`])
+        }
+      }
+
       await delay(600); if (cancelled) return; setDone(true)
       await delay(500); if (cancelled) return; onDone()
     })()
@@ -396,7 +463,7 @@ export function Assembly({ userName, config, onDone }: { userName: string; confi
         <F>
           <div style={{ textAlign: "center" }}>
             <div style={{ color: G, fontSize: 11, fontFamily: "var(--font-playfair), serif", fontStyle: "italic" }}>
-              Your sovereign node is initialized, {userName}. Key custody pending.
+              Your sovereign node is initialized, {userName}. Key custody established.
             </div>
             {nodeId && (
               <div style={{ marginTop: 8, fontSize: 9, color: DIM, fontFamily: "var(--font-jetbrains), monospace", letterSpacing: 1 }}>

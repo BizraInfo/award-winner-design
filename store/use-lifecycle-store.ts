@@ -273,6 +273,10 @@ interface LifecycleState {
   // Sovereign identity
   userName: string
   nodeId: string
+  publicKey: string
+  privateKeyJwk: JsonWebKey | null
+  agentIds: string[]
+  genesisReceipt: { signature: string; constitutionHash: string; activatedAt: string } | null
   teachConfig: TeachConfig
 
   // Phase 2: Seed Test
@@ -346,6 +350,7 @@ interface LifecycleActions {
   // Sovereign identity
   setUserName: (name: string) => void
   setNodeId: (id: string) => void
+  setGenesisIdentity: (identity: { nodeId: string; publicKey: string; privateKeyJwk: JsonWebKey; agentIds: string[]; signature: string; constitutionHash: string; activatedAt: string }) => void
   setTeachConfig: (config: TeachConfig) => void
 
   // Onboarding
@@ -420,6 +425,10 @@ const initialState: LifecycleState = {
   phase: "FIRST_ENCOUNTER",
   userName: "",
   nodeId: "",
+  publicKey: "",
+  privateKeyJwk: null,
+  agentIds: [],
+  genesisReceipt: null,
   teachConfig: initialTeachConfig,
   seedProfile: initialSeedProfile,
   patAgents: DEFAULT_PAT_AGENTS,
@@ -840,6 +849,17 @@ export const useLifecycleStore = create<LifecycleState & LifecycleActions>()(
         // Sovereign identity
         setUserName: (name) => set({ userName: name }),
         setNodeId: (id) => set({ nodeId: id }),
+        setGenesisIdentity: (identity) => set({
+          nodeId: identity.nodeId,
+          publicKey: identity.publicKey,
+          privateKeyJwk: identity.privateKeyJwk,
+          agentIds: identity.agentIds,
+          genesisReceipt: {
+            signature: identity.signature,
+            constitutionHash: identity.constitutionHash,
+            activatedAt: identity.activatedAt,
+          },
+        }),
         setTeachConfig: (config) => set({ teachConfig: config }),
 
         // Onboarding
@@ -870,6 +890,10 @@ export const useLifecycleStore = create<LifecycleState & LifecycleActions>()(
           phase: state.phase,
           userName: state.userName,
           nodeId: state.nodeId,
+          publicKey: state.publicKey,
+          privateKeyJwk: state.privateKeyJwk,
+          agentIds: state.agentIds,
+          genesisReceipt: state.genesisReceipt,
           teachConfig: state.teachConfig,
           // Exclude sensitive fields from seedProfile (primaryStressor)
           seedProfile: {
