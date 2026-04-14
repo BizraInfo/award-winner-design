@@ -40,7 +40,7 @@ export function SplashScreen({ onStart }: { onStart: () => void }) {
         </div>
       </F>
       <F d={700}><div style={{ fontFamily: "var(--font-cinzel), serif", color: G, fontSize: 16, letterSpacing: 6, fontWeight: 600 }}>BIZRA</div></F>
-      <F d={1000}><div style={{ fontSize: 8, color: DIMR, letterSpacing: 4, marginTop: 4 }}>SOVEREIGN AI OPERATING SYSTEM</div></F>
+      <F d={1000}><div style={{ fontSize: 11, color: DIMR, letterSpacing: 4, marginTop: 4 }}>SOVEREIGN AI OPERATING SYSTEM</div></F>
       <F d={1400}>
         <div style={{ marginTop: 28, textAlign: "center" }}>
           <div style={{ fontFamily: "var(--font-amiri), serif", fontSize: 16, color: `${G}35`, direction: "rtl", marginBottom: 8 }}>{"\u0628\u0633\u0645 \u0627\u0644\u0644\u0647 \u0627\u0644\u0631\u062D\u0645\u0646 \u0627\u0644\u0631\u062D\u064A\u0645"}</div>
@@ -53,7 +53,7 @@ export function SplashScreen({ onStart }: { onStart: () => void }) {
         <button onClick={onStart} onMouseEnter={() => setH(true)} onMouseLeave={() => setH(false)}
           style={{
             marginTop: 36, background: h ? `${G}0A` : "transparent", border: `1px solid ${h ? G + "50" : G + "20"}`,
-            color: G, padding: "14px 44px", borderRadius: 2, fontSize: 10, letterSpacing: 5, cursor: "pointer",
+            color: G, padding: "14px 44px", borderRadius: 2, fontSize: 13, letterSpacing: 5, cursor: "pointer",
             fontFamily: "var(--font-jetbrains), monospace", transition: "all .4s", boxShadow: h ? `0 0 50px ${G}0A` : "none"
           }}>INITIALIZE NODE</button>
       </F>
@@ -65,7 +65,16 @@ export function SplashScreen({ onStart }: { onStart: () => void }) {
 // ============================
 // GENESIS (name + identity)
 // ============================
-export function GenesisFlow({ onDone }: { onDone: (name: string, id: string) => void }) {
+export interface GenesisIdentity {
+  nodeId: string
+  publicKey: string
+  agentIds: string[]
+  signature: string
+  constitutionHash: string
+  activatedAt: string
+}
+
+export function GenesisFlow({ onDone }: { onDone: (name: string, identity: GenesisIdentity) => void }) {
   const [name, setName] = useState("")
   const [ph, setPh] = useState<"in" | "gen">("in")
   const [lines, setLines] = useState<string[]>([])
@@ -73,25 +82,51 @@ export function GenesisFlow({ onDone }: { onDone: (name: string, id: string) => 
 
   useEffect(() => { setTimeout(() => r.current?.focus(), 500) }, [])
 
+  const [error, setError] = useState<string | null>(null)
   const go = useCallback(async () => {
     if (!name.trim()) return
     setPh("gen")
-    const id = Array.from(crypto.getRandomValues(new Uint8Array(16))).map(b => b.toString(16).padStart(2, "0")).join("")
-    const steps: [string, number][] = [
-      ["Generating Ed25519 sovereign keypair...", 400],
-      ["Node ID: " + id.slice(0, 20) + "...", 300],
-      ["Deriving 12 agent child keys (HD-Ed25519)...", 500],
-      ["Loading constitution v5.0.0-GENESIS...", 300],
-      ["Covenant: 859649ea...verified \u2713", 400],
-      ["7 constitutional rights bound.", 300],
-      ["Genesis complete. Welcome, " + name.trim() + ".", 500],
-    ]
-    for (const [t, d] of steps) {
-      await delay(d)
-      setLines(p => [...p, t])
+    setError(null)
+    setLines(p => [...p, "Requesting genesis from sovereign endpoint..."])
+    try {
+      const res = await fetch("/api/genesis", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: name.trim() }),
+      })
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: `HTTP ${res.status}` }))
+        throw new Error(err.error || `Genesis failed (${res.status})`)
+      }
+      const data = await res.json() as {
+        nodeId: string
+        publicKey: string
+        constitutionHash: string
+        signature: string
+        agentIds: string[]
+        activatedAt: string
+        steps: Array<{ label: string; detail: string; ok: boolean }>
+      }
+      for (const s of data.steps) {
+        await delay(280)
+        setLines(p => [...p, `${s.label}  —  ${s.detail}`])
+      }
+      await delay(400)
+      setLines(p => [...p, `Welcome, ${name.trim()}.`])
+      await delay(600)
+      onDone(name.trim(), {
+        nodeId: data.nodeId,
+        publicKey: data.publicKey,
+        agentIds: data.agentIds,
+        signature: data.signature,
+        constitutionHash: data.constitutionHash,
+        activatedAt: data.activatedAt,
+      })
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e)
+      setError(msg)
+      setLines(p => [...p, `FAILED: ${msg}`])
     }
-    await delay(600)
-    onDone(name.trim(), id)
   }, [name, onDone])
 
   return (
@@ -115,21 +150,32 @@ export function GenesisFlow({ onDone }: { onDone: (name: string, id: string) => 
             </div>
             <button onClick={go} disabled={!name.trim()} style={{
               marginTop: 4, background: "transparent", border: `1px solid ${name.trim() ? G + "35" : LINE}`,
-              color: name.trim() ? G : `${TXT}20`, padding: "10px 32px", borderRadius: 2, fontSize: 9, letterSpacing: 4,
+              color: name.trim() ? G : `${TXT}20`, padding: "10px 32px", borderRadius: 2, fontSize: 12, letterSpacing: 4,
               fontFamily: "var(--font-jetbrains), monospace", cursor: name.trim() ? "pointer" : "default"
             }}>GENERATE IDENTITY</button>
           </div>
         </F>
       )}
       {ph !== "in" && (
-        <div style={{ maxWidth: 440, width: "100%", padding: "0 24px" }}>
-          {lines.map((l, i) => (
-            <F key={i} d={i * 60}>
-              <div style={{ padding: "3px 0", fontSize: 10, color: l.includes("\u2713") ? GR : l.includes("Welcome") ? G : "#9CA3AF" }}>
-                {l.includes("Welcome") ? <span style={{ fontWeight: 500 }}>{l}</span> : <><span style={{ color: GR, marginRight: 8 }}>{"\u2713"}</span>{l}</>}
-              </div>
-            </F>
-          ))}
+        <div style={{ maxWidth: 560, width: "100%", padding: "0 24px" }}>
+          {lines.map((l, i) => {
+            const isFail = l.startsWith("FAILED")
+            const isWelcome = l.startsWith("Welcome,")
+            const color = isFail ? "#ef4444" : isWelcome ? G : l.includes("Requesting") ? DIM : GR
+            const marker = isFail ? "\u2717" : isWelcome ? "\u2605" : l.includes("Requesting") ? "\u25B8" : "\u2713"
+            return (
+              <F key={i} d={i * 60}>
+                <div style={{ padding: "3px 0", fontSize: 13, color, fontFamily: "var(--font-jetbrains), monospace" }}>
+                  <span style={{ color, marginRight: 8 }}>{marker}</span>{l}
+                </div>
+              </F>
+            )
+          })}
+          {error && (
+            <div style={{ marginTop: 16, padding: 12, border: "1px solid #ef444433", borderRadius: 4, color: "#ef4444", fontSize: 12 }}>
+              Genesis endpoint error. <button onClick={() => { setPh("in"); setLines([]); setError(null) }} style={{ color: G, background: "transparent", border: "none", cursor: "pointer", textDecoration: "underline" }}>retry</button>
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -192,12 +238,12 @@ export function TeachSteps({ userName, onDone }: { userName: string; onDone: (co
           ))}
         </div>
       </F>
-      <F d={200}><div style={{ fontFamily: "var(--font-cinzel), serif", color: G, fontSize: 9, letterSpacing: 4, marginBottom: 4 }}>TEACH {"\u00B7"} STEP {step + 1}/{total}</div></F>
+      <F d={200}><div style={{ fontFamily: "var(--font-cinzel), serif", color: G, fontSize: 12, letterSpacing: 4, marginBottom: 4 }}>TEACH {"\u00B7"} STEP {step + 1}/{total}</div></F>
       <F d={300} key={step}>
         <div style={{ textAlign: "center", maxWidth: 420, padding: "0 24px" }}>
           <div style={{ fontSize: 32, marginBottom: 16 }}>{q.icon}</div>
           <div style={{ fontSize: 14, color: TXT, marginBottom: 6, fontFamily: "var(--font-playfair), serif" }}>{q.prompt}</div>
-          <div style={{ fontSize: 8, color: DIMR, marginBottom: 24 }}>This configures your PAT-7 agent team</div>
+          <div style={{ fontSize: 11, color: DIMR, marginBottom: 24 }}>This configures your PAT-7 agent team</div>
 
           {q.type === "text" && (
             <input value={textVal} onChange={e => setTextVal(e.target.value)} onKeyDown={e => e.key === "Enter" && next()}
@@ -237,7 +283,7 @@ export function TeachSteps({ userName, onDone }: { userName: string; onDone: (co
             style={{
               marginTop: 24, background: canNext ? `${G}15` : "transparent",
               border: `1px solid ${canNext ? G + "40" : LINE}`,
-              color: canNext ? G : `${TXT}20`, padding: "10px 36px", borderRadius: 4, fontSize: 10, letterSpacing: 3,
+              color: canNext ? G : `${TXT}20`, padding: "10px 36px", borderRadius: 4, fontSize: 13, letterSpacing: 3,
               fontFamily: "var(--font-jetbrains), monospace", cursor: canNext ? "pointer" : "default", transition: "all .3s"
             }}>
             {step === total - 1 ? "CONFIGURE AGENTS" : "NEXT \u2192"}
@@ -252,6 +298,8 @@ export function TeachSteps({ userName, onDone }: { userName: string; onDone: (co
 // ASSEMBLY (agent boot)
 // ============================
 export function Assembly({ userName, config, onDone }: { userName: string; config: TeachConfig; onDone: () => void }) {
+  const agentIds = useLifecycleStore(s => s.agentIds)
+  const nodeId = useLifecycleStore(s => s.nodeId)
   const [booted, setBooted] = useState<string[]>([])
   const [sat, setSat] = useState(false)
   const [done, setDone] = useState(false)
@@ -283,21 +331,22 @@ export function Assembly({ userName, config, onDone }: { userName: string; confi
       minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 20,
       background: BG, fontFamily: "var(--font-jetbrains), monospace"
     }}>
-      <F d={100}><div style={{ textAlign: "center" }}><div style={{ fontFamily: "var(--font-cinzel), serif", color: G, fontSize: 10, letterSpacing: 5 }}>ASSEMBLING YOUR TEAM</div></div></F>
+      <F d={100}><div style={{ textAlign: "center" }}><div style={{ fontFamily: "var(--font-cinzel), serif", color: G, fontSize: 13, letterSpacing: 5 }}>ASSEMBLING YOUR TEAM</div></div></F>
 
       {configLines.length > 0 && (
         <div style={{ minWidth: 340 }}>
           {configLines.map((l, i) => (
-            <F key={i} d={i * 50}><div style={{ fontSize: 9, color: CY, padding: "2px 0" }}>
+            <F key={i} d={i * 50}><div style={{ fontSize: 12, color: CY, padding: "2px 0" }}>
               <span style={{ color: GR, marginRight: 8 }}>{"\u2699"}</span>{l}
             </div></F>
           ))}
         </div>
       )}
 
-      <div style={{ display: "flex", flexDirection: "column", gap: 4, minWidth: 360 }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: 4, minWidth: 460 }}>
         {Object.entries(PAT).map(([id, ag], i) => {
           const on = booted.includes(id)
+          const agentIdShort = agentIds[i] ? `${agentIds[i].slice(0, 12)}…` : "—"
           return (
             <F key={id} d={100 + i * 60}>
               <div style={{
@@ -305,17 +354,20 @@ export function Assembly({ userName, config, onDone }: { userName: string; confi
                 background: on ? `${ag.col}06` : "transparent", border: `1px solid ${on ? ag.col + "18" : LINE}`, transition: "all .5s"
               }}>
                 <div style={{
-                  width: 24, height: 24, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10,
+                  width: 24, height: 24, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13,
                   border: `1px solid ${on ? ag.col + "30" : LINE}`, color: on ? ag.col : `${TXT}15`, transition: "all .5s"
                 }}>{ag.i}</div>
                 <div style={{ flex: 1 }}>
                   <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                    <span style={{ fontSize: 9, fontWeight: 600, letterSpacing: 2, color: on ? ag.col : `${TXT}15`, transition: "color .5s" }}>{ag.c}</span>
-                    <span style={{ fontSize: 9, color: on ? "#9CA3AF" : `${TXT}15`, transition: "color .5s" }}>{ag.n}</span>
+                    <span style={{ fontSize: 12, fontWeight: 600, letterSpacing: 2, color: on ? ag.col : `${TXT}15`, transition: "color .5s" }}>{ag.c}</span>
+                    <span style={{ fontSize: 12, color: on ? "#9CA3AF" : `${TXT}15`, transition: "color .5s" }}>{ag.n}</span>
                   </div>
                   <div style={{ fontSize: 7, marginTop: 1, color: on ? DIM : `${TXT}10`, fontFamily: "var(--font-playfair), serif", fontStyle: "italic", transition: "color .5s" }}>
                     {on ? ag.b : "..."}
                   </div>
+                </div>
+                <div style={{ fontSize: 9, color: on ? DIM : `${TXT}10`, fontFamily: "var(--font-jetbrains), monospace", marginRight: 6, transition: "color .5s" }}>
+                  {on ? agentIdShort : ""}
                 </div>
                 <div style={{ width: 6, height: 6, borderRadius: "50%", background: on ? ag.col : `${TXT}10`, boxShadow: on ? `0 0 5px ${ag.col}35` : "none", transition: "all .5s" }} />
               </div>
@@ -341,9 +393,18 @@ export function Assembly({ userName, config, onDone }: { userName: string; confi
       )}
 
       {done && (
-        <F><div style={{ color: G, fontSize: 11, fontFamily: "var(--font-playfair), serif", fontStyle: "italic" }}>
-          Your sovereign AI team is configured and assembled, {userName}.
-        </div></F>
+        <F>
+          <div style={{ textAlign: "center" }}>
+            <div style={{ color: G, fontSize: 11, fontFamily: "var(--font-playfair), serif", fontStyle: "italic" }}>
+              Your sovereign node is initialized, {userName}. Key custody pending.
+            </div>
+            {nodeId && (
+              <div style={{ marginTop: 8, fontSize: 9, color: DIM, fontFamily: "var(--font-jetbrains), monospace", letterSpacing: 1 }}>
+                node {nodeId.slice(0, 16)}… · {agentIds.length} identities bound
+              </div>
+            )}
+          </div>
+        </F>
       )}
     </div>
   )
