@@ -137,9 +137,29 @@ export function GenesisFlow({ onDone }: { onDone: (name: string, identity: Genes
       await delay(200)
       setLines(p => [...p, `Signed genesis envelope  —  sig:${signature.slice(0, 16)}…`])
 
-      await delay(400)
+      // Row 10 ratchet: gate the final handoff on a real backend readiness
+      // probe instead of a hardcoded delay. If the persistence substrate is
+      // not ok, surface the truth rather than advance theatrically.
+      setLines(p => [...p, "Verifying persistence substrate..."])
+      try {
+        const h = await fetch("/api/health")
+        const hj = await h.json()
+        if (hj.redis !== "ok") {
+          throw new Error(
+            hj.redis === "disabled"
+              ? "Persistence disabled (REDIS_URL not set) — cannot activate sovereign node."
+              : "Persistence substrate not ready — cannot activate sovereign node."
+          )
+        }
+        setLines(p => [...p, `Persistence substrate: ${hj.redis}`])
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : String(e)
+        setError(msg)
+        setLines(p => [...p, `FAILED: ${msg}`])
+        return
+      }
+
       setLines(p => [...p, `Welcome, ${name.trim()}.`])
-      await delay(600)
       onDone(name.trim(), {
         nodeId: data.nodeId,
         publicKey: data.publicKey,
@@ -351,40 +371,53 @@ export function Assembly({ userName, config, onDone }: { userName: string; confi
       }
       await delay(400); if (cancelled) return; setSat(true)
 
-      // G2: Activate node with client-signed receipt
-      if (nodeId && publicKey && privateKeyJwk) {
-        await delay(300); if (cancelled) return;
-        setConfigLines(p => [...p, "Signing activation receipt..."])
-        try {
-          const resourceSettings = { cpuShare: 20, gpuShare: 0, storageShare: 10, alwaysAvailable: true, availableHours: [0, 24] as [number, number] }
-          const receipt = JSON.stringify({
-            type: "node.activation.v1",
-            nodeId,
-            resourceSettings,
-            activatedAt: new Date().toISOString(),
-            constitutionVersion: "5.0.0-GENESIS",
-          })
-          const signature = await signWithSovereignKey(privateKeyJwk, receipt)
-          await delay(200); if (cancelled) return;
-          setConfigLines(p => [...p, `Receipt signed  —  sig:${signature.slice(0, 16)}…`])
+      // G2: Activate node with client-signed receipt — FAIL CLOSED.
+      // If activation cannot verify cryptographically, onboarding does NOT
+      // proceed to DAILY_LOOP. The user sees the error + a retry, and onDone()
+      // is held until a verified receipt is returned.
+      if (!nodeId || !publicKey || !privateKeyJwk) {
+        if (!cancelled) setActivationError("Missing sovereign identity; cannot activate. Re-run genesis.")
+        return
+      }
 
-          const res = await fetch("/api/node/activate", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ nodeId, publicKey, resourceSettings, receipt, signature }),
-          })
-          if (!res.ok) {
-            const err = await res.json().catch(() => ({ error: `HTTP ${res.status}` }))
-            throw new Error(err.error || `Activation failed (${res.status})`)
-          }
-          const data = await res.json()
-          await delay(200); if (cancelled) return;
-          setConfigLines(p => [...p, `Node activated  —  mode:${data.signerMode}  verified:${data.verified}`])
-        } catch (e) {
-          const msg = e instanceof Error ? e.message : String(e)
-          if (!cancelled) setActivationError(msg)
-          setConfigLines(p => [...p, `Activation warning: ${msg}`])
+      await delay(300); if (cancelled) return;
+      setConfigLines(p => [...p, "Signing activation receipt..."])
+      try {
+        const resourceSettings = { cpuShare: 20, gpuShare: 0, storageShare: 10, alwaysAvailable: true, availableHours: [0, 24] as [number, number] }
+        const receipt = JSON.stringify({
+          type: "node.activation.v1",
+          nodeId,
+          resourceSettings,
+          activatedAt: new Date().toISOString(),
+          constitutionVersion: "5.0.0-GENESIS",
+        })
+        const signature = await signWithSovereignKey(privateKeyJwk, receipt)
+        await delay(200); if (cancelled) return;
+        setConfigLines(p => [...p, `Receipt signed  —  sig:${signature.slice(0, 16)}…`])
+
+        const res = await fetch("/api/node/activate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ nodeId, publicKey, resourceSettings, receipt, signature }),
+        })
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({ error: `HTTP ${res.status}` }))
+          throw new Error(err.error || `Activation failed (${res.status})`)
         }
+        const data = await res.json()
+        // Fail-closed: the server MUST confirm signerMode=genesis_ed25519 AND verified=true.
+        if (data.signerMode !== "genesis_ed25519" || data.verified !== true) {
+          throw new Error(`Unverifiable activation (mode:${data.signerMode} verified:${data.verified})`)
+        }
+        await delay(200); if (cancelled) return;
+        setConfigLines(p => [...p, `Node activated  —  mode:${data.signerMode}  verified:${data.verified}`])
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : String(e)
+        if (!cancelled) {
+          setActivationError(msg)
+          setConfigLines(p => [...p, `ACTIVATION BLOCKED: ${msg}`])
+        }
+        return  // fail-closed: do NOT call setDone or onDone
       }
 
       await delay(600); if (cancelled) return; setDone(true)
@@ -459,7 +492,29 @@ export function Assembly({ userName, config, onDone }: { userName: string; confi
         </F>
       )}
 
-      {done && (
+      {activationError && !done && (
+        <F>
+          <div style={{ textAlign: "center", maxWidth: 460, padding: 16, border: `1px solid #ef444455`, borderRadius: 6, background: "#ef44440A" }}>
+            <div style={{ color: "#ef4444", fontSize: 11, fontFamily: "var(--font-cinzel), serif", letterSpacing: 3, marginBottom: 8 }}>
+              ACTIVATION BLOCKED
+            </div>
+            <div style={{ color: "#ef4444aa", fontSize: 11, marginBottom: 12, fontFamily: "var(--font-jetbrains), monospace" }}>
+              {activationError}
+            </div>
+            <div style={{ color: DIM, fontSize: 10, marginBottom: 12, fontFamily: "var(--font-playfair), serif", fontStyle: "italic" }}>
+              Onboarding cannot proceed without a verified sovereign activation receipt.
+            </div>
+            <button
+              onClick={() => { setActivationError(null); setBooted([]); setSat(false); setConfigLines([]); /* trigger re-run via useEffect reset */ window.location.reload() }}
+              style={{ background: "transparent", border: `1px solid ${G}40`, color: G, padding: "8px 24px", borderRadius: 2, fontSize: 11, letterSpacing: 3, cursor: "pointer", fontFamily: "var(--font-jetbrains), monospace" }}
+            >
+              RETRY ACTIVATION
+            </button>
+          </div>
+        </F>
+      )}
+
+      {done && !activationError && (
         <F>
           <div style={{ textAlign: "center" }}>
             <div style={{ color: G, fontSize: 11, fontFamily: "var(--font-playfair), serif", fontStyle: "italic" }}>
