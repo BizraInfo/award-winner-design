@@ -78,6 +78,7 @@ class RedisTokenStore implements TokenStore {
   private keyPrefix: string;
   private revokedTokenTTL: number;
   private refreshTokenTTL: number;
+  private redisUrl?: string;
   private connected: boolean = false;
   private initPromise: Promise<void> | null = null;
 
@@ -85,7 +86,8 @@ class RedisTokenStore implements TokenStore {
     this.keyPrefix = config.keyPrefix || 'bizra:auth:';
     this.revokedTokenTTL = config.revokedTokenTTL || 15 * 60; // 15 min default
     this.refreshTokenTTL = config.refreshTokenTTL || 7 * 24 * 60 * 60; // 7 days
-    
+    this.redisUrl = config.redisUrl;
+
     // Defer client creation to connect() to handle dynamic import
     this.client = null;
     this.initPromise = this.initClient(config.redisUrl);
@@ -129,6 +131,15 @@ class RedisTokenStore implements TokenStore {
         console.warn('[TokenStore] Disconnected from Redis');
         this.connected = false;
       });
+
+      // node-redis emits 'end' when the reconnectStrategy ceiling is hit and
+      // the client gives up permanently. Without this, `connected` would
+      // stay stuck at its last value (often still true from a stale connect)
+      // and getClient() would return a dead client. Track B.6.
+      this.client.on('end', () => {
+        console.warn('[TokenStore] Redis client ended — marking for re-init');
+        this.connected = false;
+      });
     } catch {
       throw new Error('Redis package not installed. Run: pnpm add redis');
     }
@@ -139,11 +150,40 @@ class RedisTokenStore implements TokenStore {
       await this.initPromise;
       this.initPromise = null;
     }
+    // Self-heal: node-redis exposes client.isOpen on v4+. We cannot rely on
+    // the 'end' or 'disconnect' event firing reliably after reconnectStrategy
+    // gives up, so inspect the client state directly. If isOpen is false, the
+    // client is permanently dead — drop it and re-initialise. Track B.6.
+    const maybeOpen = (this.client as unknown as { isOpen?: boolean } | null);
+    if (this.client && maybeOpen && maybeOpen.isOpen === false) {
+      try { await this.client.quit(); } catch { /* already dead */ }
+      this.client = null;
+      this.connected = false;
+      this.initPromise = this.initClient(this.redisUrl);
+      await this.initPromise;
+      this.initPromise = null;
+    }
     if (!this.client) {
       throw new Error('Redis client not initialized');
     }
     if (!this.connected) {
-      await this.client.connect();
+      try {
+        await this.client.connect();
+        this.connected = true;
+      } catch {
+        // connect() failed on a stale client — drop and re-init, then retry once.
+        try { await this.client.quit(); } catch { /* dead */ }
+        this.client = null;
+        this.connected = false;
+        this.initPromise = this.initClient(this.redisUrl);
+        await this.initPromise;
+        this.initPromise = null;
+        if (!this.client) {
+          throw new Error('Redis client re-init failed');
+        }
+        await (this.client as RedisClient).connect();
+        this.connected = true;
+      }
     }
     return this.client;
   }
