@@ -19,6 +19,10 @@ import {
   canRemoveMemberWithRole,
 } from "../../../lib/members/permissions";
 import type { UserPayload } from "../../../lib/security/api-auth";
+import {
+  __getRedisOperations,
+  __resetRedisMock,
+} from "../mocks/redis";
 
 function makeMember(overrides: Partial<WorkspaceMember> = {}): WorkspaceMember {
   return {
@@ -33,7 +37,11 @@ function makeMember(overrides: Partial<WorkspaceMember> = {}): WorkspaceMember {
 }
 
 describe("MemberStore — CRUD", () => {
-  beforeEach(() => __resetMemberStoreForTests());
+  beforeEach(async () => {
+    delete process.env.REDIS_URL;
+    __resetRedisMock();
+    await __resetMemberStoreForTests();
+  });
 
   it("adds and retrieves a member by id", async () => {
     const store = getMemberStore();
@@ -72,7 +80,11 @@ describe("MemberStore — CRUD", () => {
 });
 
 describe("MemberStore — Uniqueness", () => {
-  beforeEach(() => __resetMemberStoreForTests());
+  beforeEach(async () => {
+    delete process.env.REDIS_URL;
+    __resetRedisMock();
+    await __resetMemberStoreForTests();
+  });
 
   it("blocks duplicate (workspaceId, userId) with DuplicateMembershipError", async () => {
     const store = getMemberStore();
@@ -92,7 +104,11 @@ describe("MemberStore — Uniqueness", () => {
 });
 
 describe("MemberStore — Last-Owner Invariant", () => {
-  beforeEach(() => __resetMemberStoreForTests());
+  beforeEach(async () => {
+    delete process.env.REDIS_URL;
+    __resetRedisMock();
+    await __resetMemberStoreForTests();
+  });
 
   it("blocks demoting the sole owner via updateRole", async () => {
     const store = getMemberStore();
@@ -165,7 +181,11 @@ describe("MemberStore — Last-Owner Invariant", () => {
 });
 
 describe("MemberStore — MemberNotFound", () => {
-  beforeEach(() => __resetMemberStoreForTests());
+  beforeEach(async () => {
+    delete process.env.REDIS_URL;
+    __resetRedisMock();
+    await __resetMemberStoreForTests();
+  });
 
   it("updateRole on unknown id throws MemberNotFoundError", async () => {
     const store = getMemberStore();
@@ -214,5 +234,44 @@ describe("Member Permissions", () => {
     expect(canRemoveMemberWithRole(["admin"], "admin")).toBe(true);
     expect(canRemoveMemberWithRole(["admin"], "owner")).toBe(false);
     expect(canRemoveMemberWithRole(["member"], "member")).toBe(false);
+  });
+});
+
+describe("MemberStore — Redis key design", () => {
+  beforeEach(async () => {
+    process.env.REDIS_URL = "redis://unit-test";
+    __resetRedisMock();
+    await __resetMemberStoreForTests();
+  });
+
+  it("uses canonical member Redis keys for add + owner index lookups", async () => {
+    const store = getMemberStore();
+    const owner = makeMember({
+      id: "member-1",
+      workspaceId: "ws-redis",
+      userId: "user-1",
+      email: "owner@test.com",
+      role: "owner",
+    });
+
+    await store.add(owner);
+    await store.getByUserAndWorkspace(owner.workspaceId, owner.userId);
+    await store.countOwners(owner.workspaceId);
+
+    const ops = __getRedisOperations();
+    expect(ops.some((op) => op.args.includes("bizra:members:id:member-1"))).toBe(
+      true
+    );
+    expect(
+      ops.some((op) =>
+        op.args.includes("bizra:members:user:ws-redis:user-1")
+      )
+    ).toBe(true);
+    expect(
+      ops.some((op) => op.args.includes("bizra:members:workspace:ws-redis"))
+    ).toBe(true);
+    expect(
+      ops.some((op) => op.args.includes("bizra:members:owners:ws-redis"))
+    ).toBe(true);
   });
 });

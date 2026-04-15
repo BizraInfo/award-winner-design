@@ -15,6 +15,7 @@ import {
   canAssignMemberRole,
 } from "@/lib/members/permissions";
 import { LastOwnerInvariantError, MemberNotFoundError } from "@/lib/members/errors";
+import { isRedisUnavailableError } from "@/lib/redis/client";
 
 const VALID_ROLES: MemberRole[] = ["owner", "admin", "member", "viewer"];
 
@@ -24,67 +25,83 @@ type RouteContext = {
 
 export async function PATCH(request: NextRequest, context: RouteContext) {
   return withAuth(request, async (_req, user) => {
-    const { workspaceId, memberId } = await context.params;
-
-    if (!canManageMembers(user)) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
-
-    let body: { role?: string };
     try {
-      body = await request.json();
-    } catch {
-      return NextResponse.json(
-        { error: "Invalid JSON body" },
-        { status: 400 }
-      );
-    }
+      const { workspaceId, memberId } = await context.params;
 
-    const { role } = body;
-    if (!role || !VALID_ROLES.includes(role as MemberRole)) {
-      return NextResponse.json(
-        { error: `Role must be one of: ${VALID_ROLES.join(", ")}` },
-        { status: 400 }
-      );
-    }
+      if (!canManageMembers(user)) {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      }
 
-    if (!canAssignMemberRole(user.roles, role)) {
-      return NextResponse.json(
-        {
-          error:
-            role === "owner"
-              ? "Only an existing Owner can grant the Owner role"
-              : "Insufficient privileges to assign this role",
-        },
-        { status: 403 }
-      );
-    }
-
-    const store = getMemberStore();
-    const existing = await store.getById(memberId);
-    if (!existing || existing.workspaceId !== workspaceId) {
-      return NextResponse.json({ error: "Member not found" }, { status: 404 });
-    }
-
-    try {
-      await store.updateRole(memberId, role as MemberRole, user.sub);
-    } catch (err) {
-      if (err instanceof LastOwnerInvariantError) {
+      let body: { role?: string };
+      try {
+        body = await request.json();
+      } catch {
         return NextResponse.json(
-          { error: err.message, code: err.code },
-          { status: 409 }
+          { error: "Invalid JSON body" },
+          { status: 400 }
         );
       }
-      if (err instanceof MemberNotFoundError) {
+
+      const { role } = body;
+      if (!role || !VALID_ROLES.includes(role as MemberRole)) {
         return NextResponse.json(
-          { error: err.message, code: err.code },
-          { status: 404 }
+          { error: `Role must be one of: ${VALID_ROLES.join(", ")}` },
+          { status: 400 }
         );
       }
-      throw err;
-    }
 
-    const updated = await store.getById(memberId);
-    return NextResponse.json({ member: updated });
+      if (!canAssignMemberRole(user.roles, role)) {
+        return NextResponse.json(
+          {
+            error:
+              role === "owner"
+                ? "Only an existing Owner can grant the Owner role"
+                : "Insufficient privileges to assign this role",
+          },
+          { status: 403 }
+        );
+      }
+
+      const store = getMemberStore();
+      const existing = await store.getById(memberId);
+      if (!existing || existing.workspaceId !== workspaceId) {
+        return NextResponse.json({ error: "Member not found" }, { status: 404 });
+      }
+
+      try {
+        await store.updateRole(memberId, role as MemberRole, user.sub);
+      } catch (err) {
+        if (err instanceof LastOwnerInvariantError) {
+          return NextResponse.json(
+            { error: err.message, code: err.code },
+            { status: 409 }
+          );
+        }
+        if (err instanceof MemberNotFoundError) {
+          return NextResponse.json(
+            { error: err.message, code: err.code },
+            { status: 404 }
+          );
+        }
+        if (isRedisUnavailableError(err)) {
+          return NextResponse.json(
+            { error: err.message, code: err.code },
+            { status: 503 }
+          );
+        }
+        throw err;
+      }
+
+      const updated = await store.getById(memberId);
+      return NextResponse.json({ member: updated });
+    } catch (error) {
+      if (isRedisUnavailableError(error)) {
+        return NextResponse.json(
+          { error: error.message, code: error.code },
+          { status: 503 }
+        );
+      }
+      throw error;
+    }
   });
 }
