@@ -253,7 +253,7 @@ receipt = {
         "detection":     {"redis_field_flipped_to": "degraded"},
         "fail_closed":   {"read_http": int(read_http), "write_http": int(write_http), "note": "401 from auth layer or 503 REDIS_UNAVAILABLE from business layer — both fail-closed; no silent 2xx"},
         "rollback":      {"action": "docker start redis container"},
-        "integrity":     {"method": "direct redis-cli probe", "genesis_member_record": "intact", "owner_set_scard": 1, "post_recovery_write_http": int(post_http)},
+        "integrity":     {"method": "direct redis-cli probe", "genesis_member_record": "intact", "owner_set_scard": 1, "post_recovery_http": int(post_http)},
     },
     "rows_covered": [10, 14],
     "known_limitations": [

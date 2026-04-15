@@ -26,7 +26,7 @@
       "method": "direct redis-cli probe",
       "genesis_member_record": "intact",
       "owner_set_scard": 1,
-      "post_recovery_write_http": 200
+      "post_recovery_http": 200
     }
   },
   "rows_covered": [
