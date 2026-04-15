@@ -16,7 +16,8 @@ type AcceptState =
   | { phase: "preview"; invite: InvitePreview }
   | { phase: "accepting" }
   | { phase: "accepted"; workspaceId: string }
-  | { phase: "error"; message: string }
+  | { phase: "signInRequired"; invite: InvitePreview }
+  | { phase: "error"; message: string; kind: "expired" | "revoked" | "not_found" | "email_mismatch" | "already_accepted" | "generic" }
 
 export default function InviteAcceptPage() {
   const params = useParams<{ token: string }>()
@@ -28,14 +29,25 @@ export default function InviteAcceptPage() {
       try {
         const res = await fetch(`/api/invites/${encodeURIComponent(params.token)}`)
         if (!res.ok) {
-          const data = await res.json()
-          setState({ phase: "error", message: data.error || "Invite not found" })
+          const data = await res.json().catch(() => ({ error: "Invite not found" }))
+          const message = data.error || "Invite not found"
+          const kind =
+            res.status === 404
+              ? "not_found"
+              : /revoked/i.test(message)
+              ? "revoked"
+              : /expired/i.test(message)
+              ? "expired"
+              : /already/i.test(message)
+              ? "already_accepted"
+              : "generic"
+          setState({ phase: "error", message, kind })
           return
         }
         const invite: InvitePreview = await res.json()
         setState({ phase: "preview", invite })
       } catch {
-        setState({ phase: "error", message: "Failed to load invite details" })
+        setState({ phase: "error", message: "Failed to load invite details", kind: "generic" })
       }
     }
 
@@ -43,14 +55,31 @@ export default function InviteAcceptPage() {
   }, [params.token])
 
   const handleAccept = async () => {
+    const invite = state.phase === "preview" ? state.invite : null
     setState({ phase: "accepting" })
     try {
       const res = await fetch(`/api/invites/${encodeURIComponent(params.token)}/accept`, {
         method: "POST",
       })
+      if (res.status === 401 && invite) {
+        setState({ phase: "signInRequired", invite })
+        return
+      }
       if (!res.ok) {
-        const data = await res.json()
-        throw new Error(data.error || "Failed to accept invite")
+        const data = await res.json().catch(() => ({ error: "Failed to accept invite" }))
+        const message = data.error || "Failed to accept invite"
+        const kind =
+          /revoked/i.test(message)
+            ? "revoked"
+            : /expired/i.test(message)
+            ? "expired"
+            : /already/i.test(message)
+            ? "already_accepted"
+            : /signed in as|sent to/i.test(message)
+            ? "email_mismatch"
+            : "generic"
+        setState({ phase: "error", message, kind })
+        return
       }
       const data = await res.json()
       setState({ phase: "accepted", workspaceId: data.workspaceId })
@@ -61,6 +90,7 @@ export default function InviteAcceptPage() {
       setState({
         phase: "error",
         message: err instanceof Error ? err.message : "Failed to accept",
+        kind: "generic",
       })
     }
   }
@@ -125,13 +155,47 @@ export default function InviteAcceptPage() {
           </div>
         )}
 
+        {state.phase === "signInRequired" && (
+          <div className="space-y-3">
+            <AlertCircle className="w-8 h-8 text-[#C9A962] mx-auto" />
+            <h2 className="text-lg font-semibold text-[#F8F6F1]">Please sign in</h2>
+            <p className="text-gray-400 text-sm">
+              This invite is for{" "}
+              <span className="text-[#F8F6F1] font-medium">{state.invite.email}</span>. Sign in
+              with that account, then return to this page and click Accept again.
+            </p>
+            <button
+              onClick={handleAccept}
+              className="w-full px-4 py-2 bg-[#C9A962] text-[#0A1628] rounded-lg text-sm font-medium
+                         hover:bg-[#D4B972] transition-colors"
+            >
+              Retry Accept
+            </button>
+          </div>
+        )}
+
         {state.phase === "error" && (
           <div className="space-y-3">
             <AlertCircle className="w-8 h-8 text-red-400 mx-auto" />
             <h2 className="text-lg font-semibold text-[#F8F6F1]">
-              Invite Unavailable
+              {state.kind === "expired"
+                ? "Invite Expired"
+                : state.kind === "revoked"
+                ? "Invite Revoked"
+                : state.kind === "already_accepted"
+                ? "Already Accepted"
+                : state.kind === "email_mismatch"
+                ? "Wrong Account"
+                : state.kind === "not_found"
+                ? "Invite Not Found"
+                : "Invite Unavailable"}
             </h2>
             <p className="text-red-400 text-sm">{state.message}</p>
+            {state.kind === "expired" || state.kind === "revoked" ? (
+              <p className="text-gray-500 text-xs">
+                Ask the person who invited you to send a fresh invite.
+              </p>
+            ) : null}
             <button
               onClick={() => router.push("/")}
               className="px-4 py-2 text-sm text-gray-400 hover:text-gray-300 transition-colors"
