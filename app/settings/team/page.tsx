@@ -109,9 +109,8 @@ export default function TeamSettingsPage() {
         </section>
 
         <p className="text-gray-600 text-xs mt-6">
-          Note: membership state is held in the in-memory store (see{" "}
-          <code>lib/members/member-store.ts</code>). Restarting the server will clear it until
-          Redis persistence lands.
+          Membership state is backed by Redis (<code>lib/members/member-store.ts</code>,{" "}
+          <code>lib/redis/client.ts</code>) and survives server restart.
         </p>
       </div>
 

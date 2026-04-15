@@ -9,6 +9,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withAuth } from '@/lib/security/api-auth';
 import { ensureGenesisOwner } from '@/lib/members/ensure-genesis-owner';
+import { resolveWorkspaceUser } from '@/lib/members/resolve-role';
 import { isRedisUnavailableError } from '@/lib/redis/client';
 
 // Default workspace identifier — matches app/settings/team/page.tsx until
@@ -23,11 +24,16 @@ export async function GET(request: NextRequest) {
       // is auto-seeded as Owner. No-op if the workspace already has members.
       await ensureGenesisOwner(DEFAULT_WORKSPACE_ID, user);
 
+      // Merge workspace-scoped role into effective roles so the client's
+      // permission gates (Invite button, role editors) see the same shape
+      // the server uses. Mirrors lib/members/resolve-role.ts on the API.
+      const effective = await resolveWorkspaceUser(DEFAULT_WORKSPACE_ID, user);
+
       return NextResponse.json({
-        sub: user.sub,
-        email: user.email,
-        roles: user.roles,
-        permissions: user.permissions,
+        sub: effective.sub,
+        email: effective.email,
+        roles: effective.roles,
+        permissions: effective.permissions,
       });
     } catch (error) {
       if (isRedisUnavailableError(error)) {
