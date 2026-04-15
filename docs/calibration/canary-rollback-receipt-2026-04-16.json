@@ -1,0 +1,40 @@
+{
+  "drill": "persistence-canary-rollback",
+  "version": "v1",
+  "timestamp_utc": "2026-04-15T21:16:36Z",
+  "result": "PASS",
+  "phases": {
+    "baseline": {
+      "redis": "ok",
+      "member_count": 1
+    },
+    "inject": {
+      "action": "docker stop redis container (AOF-persisted, survives stop/start)"
+    },
+    "detection": {
+      "redis_field_flipped_to": "degraded"
+    },
+    "fail_closed": {
+      "read_http": 401,
+      "write_http": 403,
+      "note": "401 from auth layer or 503 REDIS_UNAVAILABLE from business layer \u2014 both fail-closed; no silent 2xx"
+    },
+    "rollback": {
+      "action": "docker start redis container"
+    },
+    "integrity": {
+      "method": "direct redis-cli probe",
+      "genesis_member_record": "intact",
+      "owner_set_scard": 1,
+      "post_recovery_write_http": 200
+    }
+  },
+  "rows_covered": [
+    10,
+    14
+  ],
+  "known_limitations": [
+    "No deployment-layer rollback: this drill covers data-plane fail-closed only. Blue-green / canary traffic shifting is not yet implemented."
+  ],
+  "notes": "Persistence-layer drill. Proves fail-closed under degraded Redis + byte-level data survival across the degrade\u2192rollback cycle."
+}
