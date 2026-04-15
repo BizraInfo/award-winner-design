@@ -1,0 +1,115 @@
+name: Canary/Rollback Drill
+
+# Runs the persistence-layer canary/rollback drill in CI.
+# The drill:
+#   1. Boots a Redis container with AOF persistence
+#   2. Starts the Next.js dev server against it
+#   3. Injects failure (docker stop), proves health detection + fail-closed
+#   4. Rolls back (docker start), proves state integrity + post-recovery function
+#
+# Not run on every PR — too heavy. Run on demand + nightly.
+#
+# Source: scripts/verify-canary-rollback-drill.sh
+
+on:
+  workflow_dispatch:
+  schedule:
+    # 03:00 UTC daily (06:00 GST). Keep the drill evergreen against drift.
+    - cron: '0 3 * * *'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: canary-rollback-drill
+  cancel-in-progress: true
+
+jobs:
+  drill:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    # We do NOT use `services:` here — the drill needs `docker stop/start` by
+    # container name, which is only usable against containers we launched
+    # ourselves inside the job (not runner-managed service containers).
+
+    env:
+      REDIS_URL: redis://localhost:6379
+      APP_PORT: '3005'
+      # Stable secrets so the drill's back-to-back logins don't hit ephemeral
+      # dev-mode secret regeneration. 32+ chars each. Not used elsewhere.
+      JWT_SECRET: drill-jwt-secret-at-least-32-characters-for-ci-xxx
+      REFRESH_SECRET: drill-refresh-secret-at-least-32-characters-for-ci
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Start Redis with AOF persistence
+        run: |
+          docker run -d \
+            --name redis-b3-test \
+            -p 6379:6379 \
+            -v redis-b3-data:/data \
+            redis:7-alpine \
+            redis-server --appendonly yes --save ""
+          # Wait for readiness
+          for i in $(seq 1 15); do
+            if docker exec redis-b3-test redis-cli ping 2>/dev/null | grep -q PONG; then
+              echo "Redis ready"; exit 0
+            fi
+            sleep 1
+          done
+          echo "Redis did not become ready"; exit 1
+
+      - name: Start dev server
+        run: |
+          pnpm dev >/tmp/canary-dev.log 2>&1 &
+          echo "DEV_PID=$!" >> "$GITHUB_ENV"
+          # Wait for /api/health to report redis:ok
+          for i in $(seq 1 60); do
+            if curl -fsS "http://localhost:${APP_PORT}/api/health" 2>/dev/null | grep -q '"redis":"ok"'; then
+              echo "Dev server ready"; exit 0
+            fi
+            sleep 2
+          done
+          echo "Dev server did not become ready"
+          tail -100 /tmp/canary-dev.log
+          exit 1
+
+      - name: Run canary/rollback drill
+        run: bash scripts/verify-canary-rollback-drill.sh
+
+      - name: Upload drill receipt
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: canary-rollback-receipt
+          path: /tmp/canary-rollback-receipt.json
+          if-no-files-found: warn
+
+      - name: Upload dev server log on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dev-server-log
+          path: /tmp/canary-dev.log
+          if-no-files-found: warn
+
+      - name: Teardown
+        if: always()
+        run: |
+          kill "$DEV_PID" 2>/dev/null || true
+          docker rm -f redis-b3-test 2>/dev/null || true
+          docker volume rm redis-b3-data 2>/dev/null || true
