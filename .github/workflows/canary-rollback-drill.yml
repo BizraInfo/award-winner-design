@@ -35,7 +35,10 @@ jobs:
 
     env:
       REDIS_URL: redis://localhost:6379
+      # APP_PORT is read by the drill script; PORT is read by Next.js itself.
+      # Keep them in sync.
       APP_PORT: '3005'
+      PORT: '3005'
       # Stable secrets so the drill's back-to-back logins don't hit ephemeral
       # dev-mode secret regeneration. 32+ chars each. Not used elsewhere.
       JWT_SECRET: drill-jwt-secret-at-least-32-characters-for-ci-xxx
