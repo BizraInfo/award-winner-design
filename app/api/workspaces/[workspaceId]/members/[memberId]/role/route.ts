@@ -14,6 +14,7 @@ import {
   canManageMembers,
   canAssignMemberRole,
 } from "@/lib/members/permissions";
+import { resolveWorkspaceUser } from "@/lib/members/resolve-role";
 import { LastOwnerInvariantError, MemberNotFoundError } from "@/lib/members/errors";
 import { isRedisUnavailableError } from "@/lib/redis/client";
 
@@ -27,8 +28,9 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
   return withAuth(request, async (_req, user) => {
     try {
       const { workspaceId, memberId } = await context.params;
+      const effectiveUser = await resolveWorkspaceUser(workspaceId, user);
 
-      if (!canManageMembers(user)) {
+      if (!canManageMembers(effectiveUser)) {
         return NextResponse.json({ error: "Forbidden" }, { status: 403 });
       }
 
@@ -50,7 +52,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
         );
       }
 
-      if (!canAssignMemberRole(user.roles, role)) {
+      if (!canAssignMemberRole(effectiveUser.roles, role)) {
         return NextResponse.json(
           {
             error:

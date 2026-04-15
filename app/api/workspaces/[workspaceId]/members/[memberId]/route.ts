@@ -14,6 +14,7 @@ import {
   canManageMembers,
   canRemoveMemberWithRole,
 } from "@/lib/members/permissions";
+import { resolveWorkspaceUser } from "@/lib/members/resolve-role";
 import {
   LastOwnerInvariantError,
   MemberNotFoundError,
@@ -28,8 +29,9 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
   return withAuth(request, async (_req, user) => {
     try {
       const { workspaceId, memberId } = await context.params;
+      const effectiveUser = await resolveWorkspaceUser(workspaceId, user);
 
-      if (!canManageMembers(user)) {
+      if (!canManageMembers(effectiveUser)) {
         return NextResponse.json({ error: "Forbidden" }, { status: 403 });
       }
 
@@ -39,7 +41,7 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
         return NextResponse.json({ error: "Member not found" }, { status: 404 });
       }
 
-      if (!canRemoveMemberWithRole(user.roles, existing.role)) {
+      if (!canRemoveMemberWithRole(effectiveUser.roles, existing.role)) {
         return NextResponse.json(
           { error: "Insufficient privileges to remove this member" },
           { status: 403 }
