@@ -95,14 +95,22 @@ class RedisTokenStore implements TokenStore {
 
   private async initClient(redisUrl?: string): Promise<void> {
     try {
-      // Runtime-only import to avoid build-time module resolution when redis is optional
-      // eslint-disable-next-line no-new-func
-      const importAtRuntime = new Function(
-        'specifier',
-        'return import(specifier)'
-      ) as (specifier: string) => Promise<{
-        createClient: (options: unknown) => RedisClient;
-      }>;
+      // Vitest needs a normal dynamic import so the alias to the Redis mock is
+      // honored. Production / app runtime keeps the Function-based runtime
+      // import to avoid build-time resolution when Redis is optional.
+      // Mirrors lib/redis/client.ts.
+      const importAtRuntime =
+        process.env.VITEST === 'true'
+          ? ((specifier: string) => import(specifier)) as (
+              specifier: string
+            ) => Promise<{ createClient: (options: unknown) => RedisClient }>
+          : // eslint-disable-next-line no-new-func
+            (new Function(
+              'specifier',
+              'return import(specifier)'
+            ) as (specifier: string) => Promise<{
+              createClient: (options: unknown) => RedisClient;
+            }>);
       const redis = await importAtRuntime('redis');
       
       this.client = redis.createClient({

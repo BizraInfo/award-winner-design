@@ -1,7 +1,7 @@
 {
   "drill": "persistence-canary-rollback",
   "version": "v1",
-  "timestamp_utc": "2026-04-15T21:16:36Z",
+  "timestamp_utc": "2026-04-15T22:21:58Z",
   "result": "PASS",
   "phases": {
     "baseline": {

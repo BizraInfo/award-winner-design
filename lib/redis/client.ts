@@ -133,6 +133,24 @@ export async function getRedisClient(
     }
   }
 
+  // Self-heal: node-redis v4 exposes client.isOpen. After the reconnectStrategy
+  // ceiling, the client enters a permanently-closed state and every op throws
+  // "The client is closed" — but 'end'/'disconnect' events do NOT fire
+  // reliably, so we cannot trust `connected`. Inspect isOpen directly. Mirrors
+  // lib/security/token-store.ts (Track B.6 convergence).
+  const maybeOpen = client as unknown as { isOpen?: boolean } | null;
+  if (client && maybeOpen && maybeOpen.isOpen === false) {
+    await __dropRedisSingleton();
+    if (!initPromise) {
+      initPromise = initRedisClient();
+    }
+    try {
+      await initPromise;
+    } finally {
+      initPromise = null;
+    }
+  }
+
   if (!client) {
     throw new RedisUnavailableError(operation, "Redis client not initialized");
   }
