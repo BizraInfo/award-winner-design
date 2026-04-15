@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { healthChecks, metrics } from '@/lib/observability'
+import { getRedisHealthStatus } from '@/lib/redis/client'
 
 /**
  * Health Check Endpoint
@@ -35,6 +36,7 @@ export async function GET(request: Request) {
 
   // Run all health checks
   const systemHealth = await healthChecks.runAll();
+  const redis = await getRedisHealthStatus();
   
   // Basic health response for k8s probes
   const healthCheck = {
@@ -44,6 +46,7 @@ export async function GET(request: Request) {
     version: process.env.NEXT_PUBLIC_APP_VERSION || systemHealth.version,
     buildId: process.env.NEXT_PUBLIC_BUILD_ID || 'development',
     environment: process.env.NODE_ENV || 'development',
+    redis,
   }
 
   // Add detailed checks if verbose

@@ -2,13 +2,17 @@ import { defineConfig } from 'vitest/config'
 import react from '@vitejs/plugin-react'
 import path from 'path'
 
+const isRedisIntegration = process.env.TEST_WITH_REDIS === '1'
+
 export default defineConfig({
   plugins: [react()],
   test: {
     environment: 'jsdom',
     globals: true,
     setupFiles: ['./tests/unit/setup.ts'],
-    include: ['tests/unit/**/*.{test,spec}.{js,ts,tsx}'],
+    include: isRedisIntegration
+      ? ['tests/integration/**/*.{test,spec}.{js,ts,tsx}']
+      : ['tests/unit/**/*.{test,spec}.{js,ts,tsx}'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html', 'lcov'],
@@ -45,10 +49,13 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, '.'),
-      // Mock redis for unit tests — token-store.ts uses dynamic import('redis')
-      // which Vite tries to resolve at build time. MemoryTokenStore is the
-      // correct fallback for non-production environments.
-      'redis': path.resolve(__dirname, './tests/unit/mocks/redis.ts'),
+      ...(isRedisIntegration
+        ? {}
+        : {
+            // Mock redis for unit tests — the production Redis client is
+            // exercised only in TEST_WITH_REDIS integration runs.
+            redis: path.resolve(__dirname, './tests/unit/mocks/redis.ts'),
+          }),
     },
   },
 })
