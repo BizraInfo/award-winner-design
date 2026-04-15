@@ -162,8 +162,30 @@ export async function getRedisHealthStatus(): Promise<
     await redis.ping();
     return "ok";
   } catch {
+    // Self-heal: drop the singleton so the next probe re-initialises from
+    // scratch. Without this, the node redis client's reconnectStrategy hits
+    // its max-retry ceiling during an outage and then stays permanently
+    // broken even after Redis recovers — meaning /api/health would report
+    // "degraded" forever. This was surfaced by the canary/rollback drill.
+    await __dropRedisSingleton();
     return "degraded";
   }
+}
+
+// Internal variant of __resetRedisClientForTests that is safe to call from
+// production code paths (e.g. the health probe) without tying the logic to
+// a VITEST environment check. No-op if no client exists.
+async function __dropRedisSingleton(): Promise<void> {
+  if (client) {
+    try {
+      await client.quit();
+    } catch {
+      // Client was already torn down — that's the state we want.
+    }
+  }
+  client = null;
+  initPromise = null;
+  connected = false;
 }
 
 export function isRedisUnavailableError(
