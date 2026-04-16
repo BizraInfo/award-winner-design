@@ -1,1 +1,23 @@
-npx lint-staged
+#!/usr/bin/env sh
+# Pre-commit quality gate — fast CLI, no orchestration layer
+# Runs ESLint + TypeScript on staged .ts/.tsx files only
+
+STAGED=$(git diff --cached --name-only --diff-filter=ACMR -- '*.ts' '*.tsx')
+
+if [ -z "$STAGED" ]; then
+  exit 0
+fi
+
+echo "⚡ pre-commit: linting staged files..."
+echo "$STAGED" | xargs npx eslint --no-warn-ignored --max-warnings 0 || {
+  echo "❌ ESLint failed — fix errors before committing"
+  exit 1
+}
+
+echo "⚡ pre-commit: type-checking..."
+npx tsc --noEmit || {
+  echo "❌ TypeScript errors — fix before committing"
+  exit 1
+}
+
+echo "✅ pre-commit: all gates passed"
