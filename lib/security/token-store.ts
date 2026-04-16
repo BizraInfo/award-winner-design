@@ -15,6 +15,8 @@
 
 /* eslint-disable no-console */
 
+import { isClientPermanentlyClosed } from "../redis/health";
+
 // Redis client type (dynamically imported)
 type RedisClient = {
   connect(): Promise<void>;
@@ -158,12 +160,9 @@ class RedisTokenStore implements TokenStore {
       await this.initPromise;
       this.initPromise = null;
     }
-    // Self-heal: node-redis exposes client.isOpen on v4+. We cannot rely on
-    // the 'end' or 'disconnect' event firing reliably after reconnectStrategy
-    // gives up, so inspect the client state directly. If isOpen is false, the
-    // client is permanently dead — drop it and re-initialise. Track B.6.
-    const maybeOpen = (this.client as unknown as { isOpen?: boolean } | null);
-    if (this.client && maybeOpen && maybeOpen.isOpen === false) {
+    // Self-heal: after reconnectStrategy gives up, the client is permanently
+    // dead — drop it and re-initialise. Shared probe from lib/redis/health.ts.
+    if (this.client && isClientPermanentlyClosed(this.client)) {
       try { await this.client.quit(); } catch { /* already dead */ }
       this.client = null;
       this.connected = false;

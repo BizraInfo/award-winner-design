@@ -7,6 +7,8 @@
  * connection lifecycle logic.
  */
 
+import { isClientPermanentlyClosed } from "./health";
+
 type RedisMulti = {
   set(key: string, value: string): RedisMulti;
   del(...keys: string[]): RedisMulti;
@@ -133,13 +135,9 @@ export async function getRedisClient(
     }
   }
 
-  // Self-heal: node-redis v4 exposes client.isOpen. After the reconnectStrategy
-  // ceiling, the client enters a permanently-closed state and every op throws
-  // "The client is closed" — but 'end'/'disconnect' events do NOT fire
-  // reliably, so we cannot trust `connected`. Inspect isOpen directly. Mirrors
-  // lib/security/token-store.ts (Track B.6 convergence).
-  const maybeOpen = client as unknown as { isOpen?: boolean } | null;
-  if (client && maybeOpen && maybeOpen.isOpen === false) {
+  // Self-heal: after the reconnectStrategy ceiling, node-redis enters a
+  // permanently-closed state. Shared probe from lib/redis/health.ts.
+  if (isClientPermanentlyClosed(client)) {
     await __dropRedisSingleton();
     if (!initPromise) {
       initPromise = initRedisClient();
