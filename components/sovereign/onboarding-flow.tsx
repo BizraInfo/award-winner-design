@@ -6,7 +6,13 @@ import type { TeachConfig } from "@/store/use-lifecycle-store"
 import { generateSovereignKeypair, signWithSovereignKey } from "@/lib/crypto/sovereign-keygen"
 import { G, BG, GR, TXT, DIM, DIMR, LINE, PAT, SAT, CY, PU, TEACH_QUESTIONS } from "./design-tokens"
 
-const delay = (ms: number) => new Promise(r => setTimeout(r, ms))
+// Row 10 ratchet: presentation-only waits. Semantically just setTimeout, but
+// grep-findable and self-documenting. Use this for animation pacing,
+// console-log reveal cadence, etc. — anything that does NOT gate phase
+// advancement. Advancement gates bind to real backend events (see
+// /api/health and /api/node/activate call sites in this file).
+const presentationDelay = (ms: number, _reason: string): Promise<void> =>
+  new Promise(r => setTimeout(r, ms))
 
 function F({ children, d = 0 }: { children: ReactNode; d?: number }) {
   const [v, setV] = useState(false)
@@ -101,7 +107,7 @@ export function GenesisFlow({ onDone }: { onDone: (name: string, identity: Genes
       setLines(p => [...p, `FAILED: Key generation — ${msg}`])
       return
     }
-    await delay(200)
+    await presentationDelay(200, "post-keygen-reveal")
     setLines(p => [...p, `Ed25519 keypair generated  —  pk:${keypair.publicKeyHex.slice(0, 16)}…`])
 
     // Register with genesis endpoint — send only public key
@@ -126,15 +132,15 @@ export function GenesisFlow({ onDone }: { onDone: (name: string, identity: Genes
         steps: Array<{ label: string; detail: string; ok: boolean }>
       }
       for (const s of data.steps) {
-        await delay(280)
+        await presentationDelay(280, "genesis-step-reveal")
         setLines(p => [...p, `${s.label}  —  ${s.detail}`])
       }
 
       // G1: Sign the genesis envelope locally with the client's private key
-      await delay(200)
+      await presentationDelay(200, "pre-sign-pause")
       setLines(p => [...p, "Signing genesis envelope locally..."])
       const signature = await signWithSovereignKey(keypair.privateKeyJwk, data.envelope)
-      await delay(200)
+      await presentationDelay(200, "post-sign-reveal")
       setLines(p => [...p, `Signed genesis envelope  —  sig:${signature.slice(0, 16)}…`])
 
       // Row 10 ratchet: gate the final handoff on a real backend readiness
@@ -358,18 +364,18 @@ export function Assembly({ userName, config, onDone }: { userName: string; confi
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      if (config.work_schedule) { await delay(300); if (cancelled) return; setConfigLines(p => [...p, `Schedule: ${config.work_schedule}`]) }
-      if (config.primary_tools?.length) { await delay(200); if (cancelled) return; setConfigLines(p => [...p, `Tools: ${config.primary_tools.join(", ")}`]) }
-      if (config.communication_pref) { await delay(200); if (cancelled) return; setConfigLines(p => [...p, `Comms: ${config.communication_pref}`]) }
-      if (config.priority_domains?.length) { await delay(200); if (cancelled) return; setConfigLines(p => [...p, `Domains: ${config.priority_domains.join(", ")}`]) }
-      if (config.autonomy) { await delay(200); if (cancelled) return; setConfigLines(p => [...p, `Autonomy: ${config.autonomy}`]) }
-      await delay(400)
+      if (config.work_schedule) { await presentationDelay(300, "config-line-reveal"); if (cancelled) return; setConfigLines(p => [...p, `Schedule: ${config.work_schedule}`]) }
+      if (config.primary_tools?.length) { await presentationDelay(200, "config-line-reveal"); if (cancelled) return; setConfigLines(p => [...p, `Tools: ${config.primary_tools.join(", ")}`]) }
+      if (config.communication_pref) { await presentationDelay(200, "config-line-reveal"); if (cancelled) return; setConfigLines(p => [...p, `Comms: ${config.communication_pref}`]) }
+      if (config.priority_domains?.length) { await presentationDelay(200, "config-line-reveal"); if (cancelled) return; setConfigLines(p => [...p, `Domains: ${config.priority_domains.join(", ")}`]) }
+      if (config.autonomy) { await presentationDelay(200, "config-line-reveal"); if (cancelled) return; setConfigLines(p => [...p, `Autonomy: ${config.autonomy}`]) }
+      await presentationDelay(400, "pre-agent-boot-pause")
       for (const id of Object.keys(PAT)) {
-        await delay(300 + Math.random() * 150)
+        await presentationDelay(300 + Math.random() * 150, "agent-boot-stagger")
         if (cancelled) return
         setBooted(p => [...p, id])
       }
-      await delay(400); if (cancelled) return; setSat(true)
+      await presentationDelay(400, "pre-sat-reveal"); if (cancelled) return; setSat(true)
 
       // G2: Activate node with client-signed receipt — FAIL CLOSED.
       // If activation cannot verify cryptographically, onboarding does NOT
@@ -380,7 +386,7 @@ export function Assembly({ userName, config, onDone }: { userName: string; confi
         return
       }
 
-      await delay(300); if (cancelled) return;
+      await presentationDelay(300, "pre-sign-activation"); if (cancelled) return;
       setConfigLines(p => [...p, "Signing activation receipt..."])
       try {
         const resourceSettings = { cpuShare: 20, gpuShare: 0, storageShare: 10, alwaysAvailable: true, availableHours: [0, 24] as [number, number] }
@@ -392,7 +398,7 @@ export function Assembly({ userName, config, onDone }: { userName: string; confi
           constitutionVersion: "5.0.0-GENESIS",
         })
         const signature = await signWithSovereignKey(privateKeyJwk, receipt)
-        await delay(200); if (cancelled) return;
+        await presentationDelay(200, "post-sign-activation-reveal"); if (cancelled) return;
         setConfigLines(p => [...p, `Receipt signed  —  sig:${signature.slice(0, 16)}…`])
 
         const res = await fetch("/api/node/activate", {
@@ -409,7 +415,7 @@ export function Assembly({ userName, config, onDone }: { userName: string; confi
         if (data.signerMode !== "genesis_ed25519" || data.verified !== true) {
           throw new Error(`Unverifiable activation (mode:${data.signerMode} verified:${data.verified})`)
         }
-        await delay(200); if (cancelled) return;
+        await presentationDelay(200, "post-activate-reveal"); if (cancelled) return;
         setConfigLines(p => [...p, `Node activated  —  mode:${data.signerMode}  verified:${data.verified}`])
       } catch (e) {
         const msg = e instanceof Error ? e.message : String(e)
@@ -420,8 +426,8 @@ export function Assembly({ userName, config, onDone }: { userName: string; confi
         return  // fail-closed: do NOT call setDone or onDone
       }
 
-      await delay(600); if (cancelled) return; setDone(true)
-      await delay(500); if (cancelled) return; onDone()
+      await presentationDelay(600, "post-activate-pause"); if (cancelled) return; setDone(true)
+      await presentationDelay(500, "pre-handoff-reveal"); if (cancelled) return; onDone()
     })()
     return () => { cancelled = true }
   }, []) // eslint-disable-line
