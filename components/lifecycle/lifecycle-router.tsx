@@ -7,7 +7,7 @@ import type { TeachConfig } from "@/store/use-lifecycle-store"
 
 // Sovereign Design Components (ported from BIZRA_DDAGI_OS_Complete.jsx)
 import { TrustSite } from "@/components/sovereign/trust-site"
-import { SplashScreen, GenesisFlow, TeachSteps, Assembly } from "@/components/sovereign/onboarding-flow"
+import { SplashScreen, GenesisFlow, TeachSteps, Assembly, type GenesisIdentity } from "@/components/sovereign/onboarding-flow"
 import { CommandCenter } from "@/components/sovereign/command-center"
 
 // ============================================
@@ -31,7 +31,7 @@ export function LifecycleRouter() {
 
   const setPhase = useLifecycleStore(s => s.setPhase)
   const setUserName = useLifecycleStore(s => s.setUserName)
-  const setNodeId = useLifecycleStore(s => s.setNodeId)
+  const setGenesisIdentity = useLifecycleStore(s => s.setGenesisIdentity)
   const setTeachConfig = useLifecycleStore(s => s.setTeachConfig)
   const userName = useLifecycleStore(s => s.userName)
   const teachConfig = useLifecycleStore(s => s.teachConfig)
@@ -50,11 +50,11 @@ export function LifecycleRouter() {
     }
   }, [phase, userName])
 
-  const handleGenesisDone = useCallback((name: string, id: string) => {
+  const handleGenesisDone = useCallback((name: string, identity: GenesisIdentity) => {
     setUserName(name)
-    setNodeId(id)
+    setGenesisIdentity(identity)
     setPhase("PAT_INTRO")
-  }, [setUserName, setNodeId, setPhase])
+  }, [setUserName, setGenesisIdentity, setPhase])
 
   const handleTeachDone = useCallback((config: TeachConfig) => {
     setTeachConfig(config)

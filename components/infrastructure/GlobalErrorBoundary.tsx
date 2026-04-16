@@ -27,12 +27,16 @@ export class GlobalErrorBoundary extends Component<Props, State> {
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     // Classify the error
     const classification = ErrorClassifier.classify(error);
-    
+
     console.error('Uncaught error:', error, errorInfo);
     console.log('Error Classification:', classification);
 
-    // Here we would send to an analytics service
-    // ErrorReporter.report(error, classification);
+    // Auto-reload on chunk load errors (stale cache after deployment)
+    if (error.name === 'ChunkLoadError' || error.message?.includes('Failed to load chunk')) {
+      console.log('Chunk load error detected — auto-reloading...');
+      window.location.reload();
+      return;
+    }
   }
 
   render() {

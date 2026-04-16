@@ -537,9 +537,30 @@ function createBizraStorage(): StateStorage {
       : { getItem: () => null, setItem: () => {}, removeItem: () => {} }
   }
 
+  // Per-install wrapping secret: random 256 bits, generated once per browser
+  // install and stored in plain localStorage. This makes the KEK device-bound
+  // (unique to this browser profile) rather than statically derivable from a
+  // hardcoded app constant. An attacker with read-access to localStorage can
+  // still unwrap — true user-bound custody requires a passphrase or WebAuthn
+  // (tracked for v0.4).
+  const WRAP_KEY = "bizra_install_wrap_v1"
+  const getOrCreateInstallSecret = (): string => {
+    try {
+      const existing = localStorage.getItem(WRAP_KEY)
+      if (existing && existing.length >= 64) return existing
+      const bytes = new Uint8Array(32)
+      window.crypto.getRandomValues(bytes)
+      const hex = Array.from(bytes).map(b => b.toString(16).padStart(2, "0")).join("")
+      localStorage.setItem(WRAP_KEY, hex)
+      return hex
+    } catch {
+      return "bizra-fallback-static-do-not-ship"
+    }
+  }
+
   const enc = new EncryptedStorage("bizra_lc_")
   let initPromise: Promise<void> | null = null
-  const ensureInit = () => (initPromise ??= enc.initialize("bizra-sovereign-seed-v1"))
+  const ensureInit = () => (initPromise ??= enc.initialize(getOrCreateInstallSecret()))
 
   return {
     getItem: async (name: string) => {

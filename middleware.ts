@@ -33,6 +33,8 @@ const PUBLIC_API_PATHS = new Set<string>([
   '/api/scaffold/metrics',
   '/api/scaffold/evidence',
   '/api/ethics',
+  '/api/genesis',
+  '/api/node/activate',
 ]);
 
 const API_RATE_LIMIT = { max: 60, windowMs: 60_000 };
@@ -196,16 +198,13 @@ function attachRateLimitHeaders(
 }
 
 export async function middleware(req: NextRequest) {
-  // Domain redirect: bizra.info → bizra.ai (301 permanent)
-  // API routes serve from both domains to avoid breaking clients.
+  // bizra.info → temporarily offline, redirect to bizra.ai
   const host = req.headers.get('host') ?? '';
   if (
     host.includes('bizra.info') &&
     !isApiRequest(req.nextUrl.pathname)
   ) {
-    const target = new URL(req.nextUrl.pathname, 'https://bizra.ai');
-    target.search = req.nextUrl.search;
-    return NextResponse.redirect(target, 301);
+    return NextResponse.redirect(new URL('https://bizra.ai'), 302);
   }
 
   if (!isApiRequest(req.nextUrl.pathname)) {

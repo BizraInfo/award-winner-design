@@ -23,8 +23,8 @@ export const RS = "#f43f5e"  // Rose
 // Text colors
 export const TXT = "#F8F6F1"
 export const MUT = "rgba(248,246,241,.72)"
-export const DIM = "rgba(248,246,241,.45)"
-export const DIMR = "rgba(248,246,241,.25)"
+export const DIM = "rgba(248,246,241,.60)"
+export const DIMR = "rgba(248,246,241,.38)"
 export const LINE = "rgba(255,255,255,.08)"
 
 // PAT-7 Agent Manifest

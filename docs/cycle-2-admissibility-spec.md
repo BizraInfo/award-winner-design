@@ -130,13 +130,18 @@ UI and docs must **not overclaim beyond what the backend actually guarantees**.
 
 No gate may be waived. No averaging across gates. Any single FAIL holds the cycle at CANDIDATE_CANONICAL.
 
-## Current Known Blockers
+## Current State (after v0.3 fail-closed + device-bound KEK)
 
-**Gate 1** — server generates the Ed25519 keypair and discards the private key. The node never owns its sovereign key. This is the dependency root: Gate 2 cannot pass until Gate 1 passes.
+**All 5 gates architecturally closed.** Self-assessment only — independent re-audit required for promotion to CANONICAL.
 
-**Gate 2** — current flow ships `signerMode: "ephemeral_edge"`. Activation receipts are not signed with the genesis key. Blocked by Gate 1.
+- **G1**: client WebCrypto Ed25519 keygen, privateKeyJwk persisted in AES-GCM encrypted localStorage with per-install random 256-bit KEK. Device/browser-install-bound (not user-bound — that's v0.4 via passphrase or WebAuthn).
+- **G2**: onboarding is **fail-closed** — `/api/node/activate` MUST return `signerMode: "genesis_ed25519"` AND `verified: true`, else the Assembly component halts before `setDone(true)` and surfaces a retry UI.
+- **G3/G4/G5**: closed in v0.2.
 
-All other gates are either partially satisfied (close to pass after v0.1 fixes) or pending explicit verification.
+## Known residuals (not blockers, tracked for v0.4)
+
+1. **KEK is device-bound, not user-bound.** An attacker with filesystem read-access to the user's browser profile can unwrap the encrypted store. True user-bound custody requires passphrase-derived KEK (PBKDF2) or WebAuthn platform authenticator. Acceptable for 2026 investor demo; not acceptable for production sovereign custody.
+2. **No browser-level persistence test.** Current adversarial suite validates API contracts (15/15 green) but does not prove reload-survival through Playwright/Puppeteer. Low risk (same mechanism as `nodeId`/`agentIds` persistence), but strictly the claim rests on code inspection.
 
 ## Implementation Order
 

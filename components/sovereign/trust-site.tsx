@@ -52,7 +52,7 @@ export function TrustSite() {
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
           <span style={{ fontFamily: "var(--font-cinzel), serif", color: G, fontSize: 14, fontWeight: 600, letterSpacing: 4 }}>BIZRA</span>
-          <span style={{ fontFamily: "var(--font-jetbrains), monospace", fontSize: 8, color: DIMR, letterSpacing: 3 }}>DDAGI OS</span>
+          <span style={{ fontFamily: "var(--font-jetbrains), monospace", fontSize: 11, color: DIMR, letterSpacing: 3 }}>DDAGI OS</span>
         </div>
         <button onClick={onEnter} style={{
           background: `${G}12`, border: `1px solid ${G}40`, color: G, padding: "8px 20px", borderRadius: 4, fontSize: 11,
@@ -105,7 +105,7 @@ export function TrustSite() {
         </div>
 
         {/* Five invariants */}
-        <div style={{ fontFamily: "var(--font-jetbrains), monospace", fontSize: 10, color: G, letterSpacing: 3, marginBottom: 8 }}>FIVE NON-NEGOTIABLE INVARIANTS</div>
+        <div style={{ fontFamily: "var(--font-jetbrains), monospace", fontSize: 13, color: G, letterSpacing: 3, marginBottom: 8 }}>FIVE NON-NEGOTIABLE INVARIANTS</div>
         <h2 style={{ fontFamily: "var(--font-playfair), serif", fontSize: 32, margin: "0 0 24px" }}>Machine-enforced. No exceptions.</h2>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(5,1fr)", gap: 12, marginBottom: 48 }}>
           {[
@@ -116,7 +116,7 @@ export function TrustSite() {
             { id: "I-5", n: "Proof", v: "Hash-chained", c: CY },
           ].map((v, i) => (
             <div key={i} style={{ padding: 16, borderRadius: 16, background: "rgba(255,255,255,.025)", border: `1px solid ${LINE}` }}>
-              <div style={{ fontFamily: "var(--font-jetbrains), monospace", fontSize: 9, color: v.c, letterSpacing: 2, marginBottom: 8 }}>{v.id}</div>
+              <div style={{ fontFamily: "var(--font-jetbrains), monospace", fontSize: 12, color: v.c, letterSpacing: 2, marginBottom: 8 }}>{v.id}</div>
               <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 4 }}>{v.n}</div>
               <div style={{ fontSize: 11, color: MUT, fontFamily: "var(--font-jetbrains), monospace" }}>{v.v}</div>
             </div>
@@ -124,7 +124,7 @@ export function TrustSite() {
         </div>
 
         {/* Seven-layer stack */}
-        <div style={{ fontFamily: "var(--font-jetbrains), monospace", fontSize: 10, color: G, letterSpacing: 3, marginBottom: 8 }}>SEVEN-LAYER DDAGI STACK</div>
+        <div style={{ fontFamily: "var(--font-jetbrains), monospace", fontSize: 13, color: G, letterSpacing: 3, marginBottom: 8 }}>SEVEN-LAYER DDAGI STACK</div>
         <h2 style={{ fontFamily: "var(--font-playfair), serif", fontSize: 32, margin: "0 0 24px" }}>Every layer has code. Every layer has tests.</h2>
         <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 48 }}>
           {layers.map((l, i) => (
@@ -132,10 +132,10 @@ export function TrustSite() {
               display: "grid", gridTemplateColumns: "32px 1fr 200px 80px", gap: 16, alignItems: "center",
               padding: "12px 16px", borderRadius: 12, background: "rgba(255,255,255,.02)", border: `1px solid ${LINE}`
             }}>
-              <div style={{ fontFamily: "var(--font-jetbrains), monospace", fontSize: 10, color: l.col, fontWeight: 600 }}>L{i}</div>
+              <div style={{ fontFamily: "var(--font-jetbrains), monospace", fontSize: 13, color: l.col, fontWeight: 600 }}>L{i}</div>
               <div style={{ fontSize: 14, fontWeight: 500 }}>{l.n}</div>
-              <div style={{ fontFamily: "var(--font-jetbrains), monospace", fontSize: 10, color: DIM }}>{l.c}</div>
-              <div style={{ fontFamily: "var(--font-jetbrains), monospace", fontSize: 10, color: GR, textAlign: "right" }}>{l.t}</div>
+              <div style={{ fontFamily: "var(--font-jetbrains), monospace", fontSize: 13, color: DIM }}>{l.c}</div>
+              <div style={{ fontFamily: "var(--font-jetbrains), monospace", fontSize: 13, color: GR, textAlign: "right" }}>{l.t}</div>
             </div>
           ))}
         </div>
