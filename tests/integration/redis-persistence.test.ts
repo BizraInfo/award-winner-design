@@ -142,6 +142,8 @@ describeIfRedis("Redis persistence substrate", () => {
       email: "b@test.com",
       role: "owner" as const,
       joinedAt: Date.now(),
+      invitedBy: ownerA.id,
+      inviteId: randomUUID(),
     };
 
     await storeA.add(ownerA);
