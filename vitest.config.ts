@@ -31,12 +31,13 @@ export default defineConfig({
         '**/tests/**'
       ],
       // Quality gate thresholds — ratcheted to current measured values.
-      // Increase as test coverage grows. Current baseline (2026-03-05):
-      // lines: 7.26%, functions: 18.88%, statements: 7.26%, branches: 46.25%
+      // Increase as test coverage grows. Re-baselined for vitest 4's more
+      // accurate v8 remapping (2026-04-16):
+      // lines: 7.8%, functions: 7.33%, statements: 7.4%, branches: 4.4%
       thresholds: {
         lines: 5,
-        functions: 15,
-        branches: 40,
+        functions: 5,
+        branches: 4,
         statements: 5
       }
     },
