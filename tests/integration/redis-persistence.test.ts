@@ -19,6 +19,14 @@ describeIfRedis("Redis persistence substrate", () => {
 
     const memberModule = await import("../../lib/members/member-store");
     await memberModule.__resetMemberStoreForTests();
+
+    // Flush Redis between tests so workspace keys from prior tests don't
+    // cause DuplicateMembershipError or stale owner counts.
+    const { createClient } = await import("redis");
+    const flush = createClient({ url: requireRedisUrl() });
+    await flush.connect();
+    await flush.flushDb();
+    await flush.quit();
   });
 
   it("round-trips invites and members through Redis", async () => {
