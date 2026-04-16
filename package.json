@@ -32,7 +32,7 @@
     "docker:dev": "docker compose --profile dev up",
     "docker:prod": "docker compose --profile prod up --build",
     "release:check": "npx semantic-release --dry-run",
-    "prepare": "node -e \"try { require('husky').install(); } catch (_) {}\""
+    "prepare": "husky"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.7",
@@ -79,7 +79,9 @@
     "baseline-browser-mapping": "^2.10.19",
     "eslint": "^9.39.4",
     "eslint-config-next": "^16.2.4",
+    "husky": "^9.1.7",
     "jsdom": "^29.0.2",
+    "lint-staged": "^16.4.0",
     "postcss": "^8.5.10",
     "tailwindcss": "^4.2.2",
     "tw-animate-css": "1.3.3",
@@ -103,6 +105,15 @@
     },
     "onlyBuiltDependencies": [
       "esbuild"
+    ]
+  },
+  "lint-staged": {
+    "*.{ts,tsx}": [
+      "eslint --fix",
+      "bash -c 'tsc --noEmit'"
+    ],
+    "*.{ts,tsx,js,jsx,json,md,css}": [
+      "prettier --write"
     ]
   }
 }

@@ -126,18 +126,19 @@ describeIfRedis("Redis persistence substrate", () => {
     const secondModule = await import("../../lib/members/member-store");
     const storeB = secondModule.getMemberStore();
 
+    const wsId = `ws-concurrent-${randomUUID().slice(0, 8)}`;
     const ownerA = {
       id: randomUUID(),
-      workspaceId: "ws-concurrent",
-      userId: "owner-a",
+      workspaceId: wsId,
+      userId: `owner-a-${randomUUID().slice(0, 8)}`,
       email: "a@test.com",
       role: "owner" as const,
       joinedAt: Date.now(),
     };
     const ownerB = {
       id: randomUUID(),
-      workspaceId: "ws-concurrent",
-      userId: "owner-b",
+      workspaceId: wsId,
+      userId: `owner-b-${randomUUID().slice(0, 8)}`,
       email: "b@test.com",
       role: "owner" as const,
       joinedAt: Date.now(),

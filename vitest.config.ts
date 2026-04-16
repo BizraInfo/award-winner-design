@@ -16,12 +16,17 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html', 'lcov'],
+      // Scoped to directories with actual test coverage.
+      // Vitest 4 instruments ALL files matching coverage.include (no coverage.all).
+      // Including untested dirs (app/, components/) inflates the denominator
+      // and hides real regression signals. Add dirs here as tests are written.
       include: [
         'store/**/*.ts',
-        'lib/**/*.ts',
-        'components/**/*.tsx',
-        'app/**/*.ts',
-        'app/**/*.tsx'
+        'lib/invites/**/*.ts',
+        'lib/members/**/*.ts',
+        'lib/redis/**/*.ts',
+        'lib/security/**/*.ts',
+        'lib/crypto/**/*.ts',
       ],
       exclude: [
         '**/*.d.ts',
@@ -30,15 +35,16 @@ export default defineConfig({
         '**/node_modules/**',
         '**/tests/**'
       ],
-      // Quality gate thresholds — ratcheted to current measured values.
-      // Increase as test coverage grows. Re-baselined for vitest 4's more
-      // accurate v8 remapping (2026-04-16):
-      // lines: 7.8%, functions: 7.33%, statements: 7.4%, branches: 4.4%
+      // Quality gate thresholds — ratcheted to measured values on the
+      // narrowed include set. Increase as coverage grows.
+      // Baseline (2026-04-16, narrowed scope):
+      //   store: ~33% | lib/invites: ~65% | lib/members: ~64%
+      //   lib/redis: ~63% | lib/security: ~30%
       thresholds: {
-        lines: 5,
-        functions: 5,
-        branches: 4,
-        statements: 5
+        lines: 30,
+        functions: 25,
+        branches: 20,
+        statements: 30
       }
     },
     // Reporter configuration
