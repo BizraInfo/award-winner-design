@@ -54,7 +54,7 @@ curl -fsS "${APP_URL}/api/health" >/dev/null 2>&1 \
 rm -f "$JAR"
 curl -fsS -c "$JAR" -X POST "${APP_URL}/api/auth/login" \
   -H 'Content-Type: application/json' \
-  -d '{"email":"demo@bizra.io","password":"demo123"}' >/dev/null \
+  -d '{"email":"demo@bizra.ai","password":"demo123"}' >/dev/null \
   || fail "login failed — cannot collect baseline" 1
 
 # Seed genesis owner and capture baseline
@@ -220,7 +220,7 @@ ok "owner set intact (count=${OWNER_COUNT})"
 rm -f "$JAR"
 curl -fsS -c "$JAR" -X POST "${APP_URL}/api/auth/login" \
   -H 'Content-Type: application/json' \
-  -d '{"email":"demo@bizra.io","password":"demo123"}' >/dev/null \
+  -d '{"email":"demo@bizra.ai","password":"demo123"}' >/dev/null \
   || fail "post-recovery re-login failed — token-store did not self-heal" 4
 ok "post-recovery re-login succeeded (token-store self-healed)"
 

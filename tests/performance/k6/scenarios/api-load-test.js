@@ -23,9 +23,9 @@ const API_KEY = __ENV.API_KEY || 'test-api-key';
 
 // Test data
 const testUsers = [
-  { email: 'test1@bizra.io', password: 'TestPass123!' },
-  { email: 'test2@bizra.io', password: 'TestPass123!' },
-  { email: 'test3@bizra.io', password: 'TestPass123!' },
+  { email: 'test1@bizra.ai', password: 'TestPass123!' },
+  { email: 'test2@bizra.ai', password: 'TestPass123!' },
+  { email: 'test3@bizra.ai', password: 'TestPass123!' },
 ];
 
 const queryTemplates = [

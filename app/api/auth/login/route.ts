@@ -19,31 +19,29 @@ async function validateCredentials(
   // In production, this would query your database and verify password hash
   // Example using bcrypt: await bcrypt.compare(password, user.passwordHash)
   
-  // Mock validation
-  if (email === 'demo@bizra.io' && password === 'demo123') {
-    return {
-      sub: 'user_123',
-      email: 'demo@bizra.io',
-      roles: ['user'],
-      permissions: ['read:profile', 'write:profile']
-    };
-  }
-  
+  const DEMO_USERS: Record<string, { password: string; data: BaseUserData }> = {
+    'demo@bizra.ai': {
+      password: 'demo123',
+      data: { sub: 'user_123', email: 'demo@bizra.ai', roles: ['user'], permissions: ['read:profile', 'write:profile'] },
+    },
+    'investor@bizra.ai': {
+      password: 'bizra2026',
+      data: { sub: 'user_investor', email: 'investor@bizra.ai', roles: ['user'], permissions: ['read:profile'] },
+    },
+  };
+
+  const entry = DEMO_USERS[email];
+  if (entry && password === entry.password) return entry.data;
   return null;
 }
 
 // Mock user lookup by ID (replace with actual DB query)
 async function getUserById(userId: string): Promise<BaseUserData | null> {
-  // In production, this would query your database
-  if (userId === 'user_123') {
-    return {
-      sub: 'user_123',
-      email: 'demo@bizra.io',
-      roles: ['user'],
-      permissions: ['read:profile', 'write:profile']
-    };
-  }
-  return null;
+  const byId: Record<string, BaseUserData> = {
+    user_123: { sub: 'user_123', email: 'demo@bizra.ai', roles: ['user'], permissions: ['read:profile', 'write:profile'] },
+    user_investor: { sub: 'user_investor', email: 'investor@bizra.ai', roles: ['user'], permissions: ['read:profile'] },
+  };
+  return byId[userId] ?? null;
 }
 
 /**

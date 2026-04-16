@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useRef, useCallback } from "react"
+import Link from "next/link"
 import { useLifecycleStore } from "@/store/use-lifecycle-store"
 import type { TeachConfig } from "@/store/use-lifecycle-store"
 import {
@@ -10,6 +11,47 @@ import {
 } from "./design-tokens"
 
 const delay = (ms: number) => new Promise(r => setTimeout(r, ms))
+
+function LiveStatusBar() {
+  const [health, setHealth] = useState<{ redis?: string; status?: string } | null>(null)
+  const [memberCount, setMemberCount] = useState<number | null>(null)
+
+  useEffect(() => {
+    let cancelled = false
+    async function poll() {
+      try {
+        const h = await fetch("/api/health").then(r => r.json())
+        if (!cancelled) setHealth(h)
+      } catch { if (!cancelled) setHealth(null) }
+      try {
+        const m = await fetch("/api/workspaces/default/members").then(r => r.ok ? r.json() : null)
+        if (!cancelled && m) setMemberCount(m.members?.length ?? 0)
+      } catch { /* auth may fail, that's ok */ }
+    }
+    poll()
+    const id = setInterval(poll, 30_000)
+    return () => { cancelled = true; clearInterval(id) }
+  }, [])
+
+  const redis = health?.redis ?? "..."
+  const dot = redis === "ok" ? GR : redis === "degraded" ? AM : DIM
+
+  return (
+    <div style={{
+      display: "flex", gap: 12, padding: "6px 20px", borderBottom: `1px solid ${LINE}06`,
+      fontSize: 10, color: DIM, letterSpacing: 1,
+    }}>
+      <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
+        <span style={{ width: 6, height: 6, borderRadius: "50%", background: dot, display: "inline-block" }} />
+        REDIS: {redis.toUpperCase()}
+      </span>
+      {memberCount !== null && (
+        <span>MEMBERS: {memberCount}</span>
+      )}
+      <span>STATUS: {health?.status?.toUpperCase() ?? "..."}</span>
+    </div>
+  )
+}
 
 interface Msg { a: string; t: string; ty: string; ts: number; thinking?: boolean }
 
@@ -209,6 +251,13 @@ export function CommandCenter() {
           <div style={{ width: 1, height: 12, background: `${G}15` }} />
           <span style={{ color: TCOL[st.tier], fontSize: 10 }}>{TIERS[st.tier]}</span>
           <span style={{ color: `${G}60`, fontSize: 10, fontFamily: "var(--font-jetbrains), monospace" }}>{time.toLocaleTimeString("en", { hour12: false })}</span>
+          <div style={{ width: 1, height: 12, background: `${G}15` }} />
+          <Link href="/settings/team" style={{ fontSize: 10, color: `${G}80`, letterSpacing: 1, textDecoration: "none" }}>
+            TEAM
+          </Link>
+          <Link href="/login" style={{ fontSize: 10, color: `${DIM}`, letterSpacing: 1, textDecoration: "none" }}>
+            SIGN IN
+          </Link>
         </div>
       </div>
 
@@ -232,6 +281,9 @@ export function CommandCenter() {
           <div key={i} style={{ width: 6, height: 6, borderRadius: "50%", background: `${s.col}40`, border: `1px solid ${s.col}20`, margin: "0 1px" }} />
         ))}
       </div>
+
+      {/* Live status cards */}
+      <LiveStatusBar />
 
       {/* Tabs */}
       <div style={{ display: "flex", padding: "0 20px", borderBottom: `1px solid ${LINE}`, gap: 0 }}>
