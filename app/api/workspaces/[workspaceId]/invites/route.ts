@@ -13,6 +13,7 @@ import {
 } from '@/lib/invites/invite-store';
 import { generateInviteToken, hashInviteToken } from '@/lib/invites/tokens';
 import { canManageInvites, canViewInvites, canAssignRole } from '@/lib/invites/permissions';
+import { resolveWorkspaceUser } from '@/lib/members/resolve-role';
 import { sendInviteEmail } from '@/lib/notifications/invite-email';
 import { isRedisUnavailableError } from '@/lib/redis/client';
 import { randomUUID } from 'crypto';
@@ -36,8 +37,9 @@ export async function POST(request: NextRequest, context: RouteContext) {
   return withAuth(request, async (_req, user) => {
     try {
       const { workspaceId } = await context.params;
+      const effectiveUser = await resolveWorkspaceUser(workspaceId, user);
 
-      if (!canManageInvites(user)) {
+      if (!canManageInvites(effectiveUser)) {
         return NextResponse.json({ error: 'Forbidden: invite management requires admin role' }, { status: 403 });
       }
 
@@ -59,7 +61,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
       if (!role || !VALID_ROLES.includes(role as InviteRole)) {
         return NextResponse.json({ error: `Role must be one of: ${VALID_ROLES.join(', ')}` }, { status: 400 });
       }
-      if (!canAssignRole(user.roles, role)) {
+      if (!canAssignRole(effectiveUser.roles, role)) {
         const msg =
           role === 'owner'
             ? 'Only an existing Owner can grant the Owner role'
@@ -144,8 +146,9 @@ export async function GET(request: NextRequest, context: RouteContext) {
   return withAuth(request, async (_req, user) => {
     try {
       const { workspaceId } = await context.params;
+      const effectiveUser = await resolveWorkspaceUser(workspaceId, user);
 
-      if (!canViewInvites(user)) {
+      if (!canViewInvites(effectiveUser)) {
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
       }
 

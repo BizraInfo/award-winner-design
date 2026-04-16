@@ -8,6 +8,7 @@ import { withAuth } from '@/lib/security/api-auth';
 import { getInviteStore } from '@/lib/invites/invite-store';
 import { generateInviteToken, hashInviteToken } from '@/lib/invites/tokens';
 import { canManageInvites } from '@/lib/invites/permissions';
+import { resolveWorkspaceUser } from '@/lib/members/resolve-role';
 import { sendInviteEmail } from '@/lib/notifications/invite-email';
 import { isRedisUnavailableError } from '@/lib/redis/client';
 import { MAX_RESEND, INVITE_TTL_MS } from '../../route';
@@ -18,8 +19,9 @@ export async function POST(request: NextRequest, context: RouteContext) {
   return withAuth(request, async (_req, user) => {
     try {
       const { workspaceId, inviteId } = await context.params;
+      const effectiveUser = await resolveWorkspaceUser(workspaceId, user);
 
-      if (!canManageInvites(user)) {
+      if (!canManageInvites(effectiveUser)) {
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
       }
 
