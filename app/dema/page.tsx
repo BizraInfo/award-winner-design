@@ -5,6 +5,8 @@ import Link from "next/link"
 import { Shield, Activity, ArrowLeft } from "lucide-react"
 import { IntentEntry } from "@/components/dema/intent-entry"
 import { GateViewer } from "@/components/dema/gate-viewer"
+import { ReceiptExplorer } from "@/components/dema/receipt-explorer"
+import { DailyManifestView } from "@/components/dema/daily-manifest"
 import type { Mission } from "@/lib/dema/types"
 
 export default function DemaConsolePage() {
@@ -106,9 +108,17 @@ export default function DemaConsolePage() {
           )}
         </div>
 
-        {/* Right: Gate Viewer */}
-        <div style={{ paddingTop: 24 }}>
+        {/* Right: Gate Viewer + Receipt Explorer + Manifest */}
+        <div style={{ paddingTop: 24, display: "flex", flexDirection: "column", gap: 24 }}>
           <GateViewer missionId={selectedId} />
+
+          <div style={{ borderTop: "1px solid rgba(255,255,255,0.04)", paddingTop: 16 }}>
+            <ReceiptExplorer />
+          </div>
+
+          <div style={{ borderTop: "1px solid rgba(255,255,255,0.04)", paddingTop: 16 }}>
+            <DailyManifestView />
+          </div>
         </div>
       </div>
     </div>
