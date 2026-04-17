@@ -10,7 +10,7 @@ export async function GET(_req: NextRequest, ctx: Ctx) {
   const mission: Mission = {
     id,
     intent: "(stub — mission not persisted yet)",
-    stage: "S1_INTAKE",
+    stage: "Intent",
     priority: "Normal",
     createdAt: Date.now(),
     updatedAt: Date.now(),

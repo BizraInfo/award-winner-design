@@ -34,6 +34,7 @@ export interface ReceiptChainHead {
   latestTimestamp: number | null;
 }
 
+// UI-facing verdict shape — stable across components.
 export type Verdict = "PERMIT" | "REJECT" | "REVIEW" | "SCORE_ONLY";
 
 export type Invariant =
@@ -57,16 +58,42 @@ export interface AdmissibilityResult {
   timestamp: number;
 }
 
+// Gateway-shape types — match bizra-cognition-gateway POST /mission response
+// byte-for-byte. Translated to UI `AdmissibilityResult` in the proxy route.
+export type GatewayVerdict = "Permit" | "Reject" | "Review" | "ScoreOnly";
+
+export interface GatewayGateVerdict {
+  scorerId: string;
+  invariant: Invariant | null;
+  verdict: GatewayVerdict;
+  reason: string;
+  score: number | null;
+}
+
+export interface GatewayRejectedClaim {
+  invariant: Invariant;
+  reason: string;
+  remediationPath: string;
+  escalationAllowed: boolean;
+}
+
+export interface GatewayAdmissibility {
+  verdict: GatewayVerdict;
+  gateVerdicts: GatewayGateVerdict[];
+  rejected?: GatewayRejectedClaim;
+}
+
+// Mirrors bizra-cognition::mission_freeze_v1::MissionStage byte-for-byte (§6).
 export type MissionStage =
-  | "S1_INTAKE"
-  | "S2_BOUND"
-  | "S3_ROUTED"
-  | "S4_EXECUTED"
-  | "S5_AUDITED"
-  | "S6_GATED"
-  | "S7_RECEIPTED"
-  | "S8_SETTLED"
-  | "S9_ARCHIVED";
+  | "Intent"
+  | "Mission"
+  | "Claim"
+  | "Admissibility"
+  | "Execution"
+  | "Receipt"
+  | "Canonicalization"
+  | "Replayability"
+  | "Reflex";
 
 export type MissionPriority = "Low" | "Normal" | "High" | "Critical";
 
