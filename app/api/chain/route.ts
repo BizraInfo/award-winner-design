@@ -1,14 +1,16 @@
 import { NextResponse } from "next/server";
 import type { ReceiptChainHead } from "@/lib/dema/types";
+import { gatewayFetch } from "@/lib/dema/gateway";
 
-// D1 stub — returns mock chain head.
-// Replace with bizra-cognition bridge in D2.
-const STUB_CHAIN_HEAD: ReceiptChainHead = {
-  head: "a".repeat(64),
-  length: 0,
-  latestTimestamp: Date.now(),
-};
-
+// GET /api/chain — proxy to bizra-cognition-gateway /chain.
+// Canonical chain head is owned by the Rust runtime; this route is a projection.
 export async function GET() {
-  return NextResponse.json(STUB_CHAIN_HEAD);
+  const result = await gatewayFetch<ReceiptChainHead>("/chain");
+  if (!result.ok) {
+    return NextResponse.json(
+      { error: result.error },
+      { status: result.error.status },
+    );
+  }
+  return NextResponse.json(result.data);
 }

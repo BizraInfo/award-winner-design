@@ -5,14 +5,14 @@ import { FileText, Hash, Clock, ChevronDown, ChevronRight, RefreshCw, Loader2 } 
 import type { ReceiptChainHead, Receipt } from "@/lib/dema/types"
 
 const KIND_COLORS: Record<string, string> = {
+  Genesis: "#06b6d4",
   CognitionBoot: "#C9A962",
   Myelination: "#22c55e",
   Demyelination: "#ef4444",
   ReasoningSession: "#3b82f6",
-  DegradedPath: "#f97316",
-  GovernanceDemyelination: "#a855f7",
-  GenesisValuation: "#06b6d4",
+  GovernanceDecision: "#a855f7",
   NodeLifecycle: "#eab308",
+  DegradedPath: "#f97316",
 }
 
 function ReceiptRow({ receipt, onReplay }: { receipt: Receipt; onReplay: (id: string) => void }) {
@@ -39,7 +39,7 @@ function ReceiptRow({ receipt, onReplay }: { receipt: Receipt; onReplay: (id: st
           {receipt.id.slice(0, 16)}...
         </span>
         <span style={{ marginLeft: "auto", fontSize: 9, color: "rgba(248,246,241,0.25)" }}>
-          {new Date(receipt.timestamp).toLocaleTimeString()}
+          {receipt.timestamp !== null ? new Date(receipt.timestamp / 1_000_000).toLocaleTimeString() : "—"}
         </span>
       </button>
 
@@ -55,7 +55,7 @@ function ReceiptRow({ receipt, onReplay }: { receipt: Receipt; onReplay: (id: st
             <span>Kind</span><span style={{ color }}>{receipt.kind}</span>
             <span>Prev Chain</span><span>{receipt.prevChain.slice(0, 32)}...</span>
             <span>Payload Hash</span><span>{receipt.payloadHash.slice(0, 32)}...</span>
-            <span>Timestamp</span><span>{new Date(receipt.timestamp).toISOString()}</span>
+            <span>Timestamp</span><span>{receipt.timestamp !== null ? new Date(receipt.timestamp / 1_000_000).toISOString() : "(not decoded)"}</span>
           </div>
           <button
             onClick={() => onReplay(receipt.id)}
@@ -119,7 +119,7 @@ export function ReceiptExplorer() {
         {chain && (
           <div style={{ fontSize: 9, color: "rgba(248,246,241,0.3)", display: "flex", gap: 12 }}>
             <span><Hash style={{ width: 10, height: 10, display: "inline" }} /> {chain.length} receipts</span>
-            <span><Clock style={{ width: 10, height: 10, display: "inline" }} /> {new Date(chain.latestTimestamp).toLocaleTimeString()}</span>
+            <span><Clock style={{ width: 10, height: 10, display: "inline" }} /> {chain.latestTimestamp !== null ? new Date(chain.latestTimestamp / 1_000_000).toLocaleTimeString() : "—"}</span>
           </div>
         )}
       </div>

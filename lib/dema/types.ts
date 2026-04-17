@@ -5,20 +5,24 @@
 
 export type Blake3Hash = string; // 64-char hex
 
+// Mirrors bizra-cognition::receipts::ReceiptKind (receipts.rs:33) byte-for-byte.
 export type ReceiptKind =
+  | "Genesis"
   | "CognitionBoot"
   | "Myelination"
   | "Demyelination"
   | "ReasoningSession"
-  | "DegradedPath"
-  | "GovernanceDemyelination"
-  | "GenesisValuation"
-  | "NodeLifecycle";
+  | "GovernanceDecision"
+  | "NodeLifecycle"
+  | "DegradedPath";
 
 export interface Receipt {
   id: Blake3Hash;
   kind: ReceiptKind;
-  timestamp: number;
+  // Nanoseconds since UNIX epoch. null when the payload is not decodable from the
+  // chain header alone (most non-Myelination kinds). See NO_SHADOW_STATE: prefer null
+  // over fabricated timestamps.
+  timestamp: number | null;
   prevChain: Blake3Hash;
   payloadHash: Blake3Hash;
 }
@@ -26,7 +30,8 @@ export interface Receipt {
 export interface ReceiptChainHead {
   head: Blake3Hash;
   length: number;
-  latestTimestamp: number;
+  // null when chain is empty or no timestamped payload has been appended yet.
+  latestTimestamp: number | null;
 }
 
 export type Verdict = "PERMIT" | "REJECT" | "REVIEW" | "SCORE_ONLY";
