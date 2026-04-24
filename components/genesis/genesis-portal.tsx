@@ -72,7 +72,7 @@ const STORY = [
     icon: "🔏",
     title: "The Proof",
     arabic: "البرهان",
-    body: "Every action sealed with cryptographic evidence. Every claim independently verifiable. No trust required — only math.",
+    body: "Every important action is designed to leave a signed, chain-referenced receipt. BIZRA moves toward traceability, replayability, and verified action — without asking you to trust empty claims.",
   },
 ]
 
@@ -611,7 +611,7 @@ export default function GenesisPortal() {
             THE SEALED PROOF
           </motion.h2>
           <motion.p {...fadeUp} className="text-center text-xs font-mono mb-12 opacity-50" style={{ color: C.dim }}>
-            Every action cryptographically sealed · Every claim independently verifiable
+            Every important action is designed to leave a receipt · Claims bound to evidence
           </motion.p>
           <motion.div {...fadeUp}>
             <div
@@ -672,7 +672,7 @@ export default function GenesisPortal() {
                 className="px-5 py-3 text-center"
                 style={{ background: C.surface, borderTop: `1px solid ${C.border}`, color: C.dim }}
               >
-                Independently verifiable · No trust required · Only math
+                Every important action is designed to leave a receipt · Claims bound to evidence
               </div>
             </div>
           </motion.div>
@@ -748,7 +748,7 @@ export default function GenesisPortal() {
         className="text-center py-8 text-xs font-mono"
         style={{ color: C.dim, borderTop: `1px solid ${C.border}` }}
       >
-        BIZRA Genesis · The Sovereign Future · بذرة
+        BIZRA Genesis · The Seed of Sovereign Intelligence · بذرة
       </footer>
     </main>
   )

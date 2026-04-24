@@ -37,8 +37,9 @@ const cinzel = Cinzel({
 })
 
 export const metadata: Metadata = {
-  title: "BIZRA | The Sovereign Future",
-  description: "From darkness to light. The first AGI with mathematical Ihsan bounds.",
+  title: "BIZRA — The Seed of Sovereign Intelligence",
+  description:
+    "A human-first AI ecosystem that turns intention into verified, ethical, and meaningful action. Not another chatbot. Not another platform that owns you.",
   generator: 'v0.app'
 }
 

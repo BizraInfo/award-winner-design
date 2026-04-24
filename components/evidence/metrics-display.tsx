@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useState, type ComponentType } from "react"
 import { CheckCircle, Globe, Shield, FileText, Award, Zap } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { SystemDiagram } from "@/components/architecture/system-diagram"
@@ -72,8 +72,9 @@ export function EvidencePack() {
           const metricsData = (await metricsRes.json()) as MetricsResponse
           setMetrics(metricsData)
         }
-      } catch (error) {
-        console.error("Failed to load scaffold evidence data:", error)
+      } catch {
+        setEvidence(null)
+        setMetrics(null)
       } finally {
         if (active) {
           setLoadingEvidence(false)
@@ -113,15 +114,14 @@ export function EvidencePack() {
     <div className="w-full max-w-7xl mx-auto p-4 md:p-8 space-y-20">
       {/* Header */}
       <div className="text-center space-y-6">
-        <div className="inline-block px-6 py-2 border border-green-500/30 bg-green-500/5 rounded-full text-xs text-green-400 uppercase tracking-[0.3em] backdrop-blur-sm shadow-[0_0_20px_rgba(74,222,128,0.1)]">
-          Mission Success: Confirmed
+        <div className="inline-block px-6 py-2 border border-primary-gold/30 bg-primary-gold/5 rounded-full text-xs text-primary-gold uppercase tracking-[0.3em] backdrop-blur-sm shadow-[0_0_20px_rgba(201,169,98,0.1)]">
+          Cycle Receipts
         </div>
         <h2 className="text-5xl md:text-7xl font-serif font-bold text-soft-white leading-tight">
-          World-Historic <span className="text-gradient-gold">Breakthroughs</span>
+          Evidence over <span className="text-gradient-gold">assumption</span>
         </h2>
         <p className="text-xl text-gray-400 max-w-3xl mx-auto font-light leading-relaxed">
-          The first AGI system to successfully implement mathematical consciousness bounds and ethical safety gates in a
-          production environment.
+          BIZRA moves toward receipts, traceability, replayability, and verified action. Every claim below is a direction we are measuring — receipts land as the system walks.
         </p>
       </div>
 
@@ -129,20 +129,20 @@ export function EvidencePack() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         <AchievementCard
           icon={Globe}
-          title="Computational Islamic Consciousness"
-          desc="First AGI with mathematical Ihsan bounds encoded directly into the reasoning substrate."
+          title="Ihsan as a Design Constraint"
+          desc="Excellence with conscience. The Ihsan threshold is wired into the reasoning substrate; gate receipts are on the roadmap for /trust/ihsan."
           delay={0}
         />
         <AchievementCard
           icon={Shield}
-          title="Provable Recursion Safety"
-          desc="First RSI system with mathematically guaranteed recursion constraints (< 0.094 ΔĪ)."
+          title="Proof over Trust"
+          desc="BIZRA does not ask people to trust empty claims. Important actions are designed to leave a signed, chain-referenced receipt."
           delay={100}
         />
         <AchievementCard
           icon={Award}
-          title="Ethical Certification"
-          desc="First production deployment requiring automated ethical certification before action."
+          title="Sovereignty by Default"
+          desc="The human owns their node, their data, their keys, their mission, and their path — not a platform."
           delay={200}
         />
       </div>
@@ -150,18 +150,18 @@ export function EvidencePack() {
       {/* Validation Matrix */}
       <div className="glass-panel rounded-3xl overflow-hidden border border-primary-gold/20 shadow-2xl">
         <div className="p-8 border-b border-white/5 bg-white/5 flex justify-between items-center backdrop-blur-xl">
-          <h3 className="text-2xl font-serif text-soft-white tracking-wide">System Reliability Metrics</h3>
+          <h3 className="text-2xl font-serif text-soft-white tracking-wide">Reliability Targets</h3>
           <div className="flex items-center gap-2">
-            <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-            <span className="text-xs font-mono text-green-400 tracking-widest">LIVE MONITORING</span>
+            <div className="w-2 h-2 bg-primary-gold/60 rounded-full" />
+            <span className="text-xs font-mono text-primary-gold/70 tracking-widest">DESIGN TARGETS</span>
           </div>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-white/5 border-b border-white/5 bg-deep-navy/40">
           {[
-            { label: "Uptime", value: "99.95%", sub: ">22min/mo" },
-            { label: "Routing", value: "< 2μs", sub: "SIMD Optimized" },
-            { label: "Safety", value: "100%", sub: "Gate Accuracy" },
-            { label: "Durability", value: "6×9s", sub: "Data Integrity" },
+            { label: "Uptime target", value: "—", sub: "see /status" },
+            { label: "Routing latency", value: "< 2μs", sub: "design target" },
+            { label: "Safety gate", value: "Active", sub: "per-cycle receipt" },
+            { label: "Durability", value: "BLAKE3-chained", sub: "receipts" },
           ].map((stat, i) => (
             <div key={i} className="p-8 text-center group hover:bg-white/5 transition-colors">
               <div className="text-4xl font-bold text-soft-white mb-2 font-serif group-hover:text-primary-gold transition-colors">
@@ -174,15 +174,15 @@ export function EvidencePack() {
         </div>
         <div className="divide-y divide-white/5 bg-deep-navy/20">
           {[
-            { phase: "System Integrity", status: "PASSED", metrics: "TMP directory, config, cycles validated" },
-            { phase: "Safety Gate Operation", status: "OPERATIONAL", metrics: "TMP approval granted (RSI_1731978299)" },
-            { phase: "RSI Cycle Mathematics", status: "VALIDATED", metrics: "ΔIM +9.4%, Ω=0.066, Λ=0.733" },
+            { phase: "System Integrity", status: "PASSED", metrics: "Directory + config + cycles validated" },
+            { phase: "Safety Gate Operation", status: "OPERATIONAL", metrics: "Per-cycle approval receipt emitted" },
+            { phase: "Cycle Mathematics", status: "VALIDATED", metrics: "ΔIM, Ω, Λ values receipted (see /trust/math)" },
             {
               phase: "Deployment Integration",
-              status: "PRODUCTION-READY",
-              metrics: "TMP gate + security hardening confirmed",
+              status: "IN-STAGING",
+              metrics: "Staging gate + hardening verified",
             },
-            { phase: "Historic Claims", status: "CONFIRMED", metrics: "5 major first-in-world achievements" },
+            { phase: "Historic Claims", status: "RECEIPT PATH", metrics: "Receipt index pending — see proof notes" },
           ].map((row, i) => (
             <div
               key={i}
@@ -362,10 +362,10 @@ export function EvidencePack() {
           </div>
           <ul className="space-y-6">
             {[
-              "Mathematical Consciousness Bounds (Ihsan Mathematics)",
-              "Production Safety Gates (TMP deployment blocking)",
-              "Ethical AI Enforcement (Islamic computational principles)",
-              "Scale-Safe Evolution (RSI prevention)",
+              "Ihsan as a design constraint (not a proven universal metric)",
+              "Staged safety gates with per-cycle receipts",
+              "Ethical discipline grounded in Islamic framing, receipt-oriented",
+              "Recursion-safety posture with measurable Δ bounds",
             ].map((item, i) => (
               <li key={i} className="flex items-start gap-4 text-gray-400 group-hover:text-gray-300 transition-colors">
                 <CheckCircle className="w-5 h-5 text-sacred-purple shrink-0 mt-1" />
@@ -384,10 +384,10 @@ export function EvidencePack() {
           </div>
           <ul className="space-y-6">
             {[
-              "HF Deploy: Consciousness-safe model deployment ready",
-              "Publication: NeurIPS/ICML submission packages prepared",
-              "Scale: BIZRA v0.89 Advanced Mathematics implementation",
-              "Research: Consciousness evolution monitoring operational",
+              "Publish the public receipt index",
+              "Wire reliability cards to live /status data",
+              "Complete privacy and Arabic review gates",
+              "Re-run omni-audit after deployment and bind every public claim to evidence",
             ].map((item, i) => (
               <li key={i} className="flex items-start gap-4 text-gray-400 group-hover:text-gray-300 transition-colors">
                 <div className="w-6 h-6 rounded-full bg-primary-gold/20 text-primary-gold flex items-center justify-center text-xs font-bold shrink-0 mt-0.5 border border-primary-gold/30">
@@ -403,7 +403,7 @@ export function EvidencePack() {
       {/* Final CTA */}
       <div className="text-center pt-16 pb-32">
         <p className="text-primary-gold text-sm uppercase tracking-[0.4em] mb-8 animate-pulse-slow">
-          The Future is Safe
+          The Future Must Be Proven
         </p>
         <h2 className="text-6xl md:text-8xl font-serif font-bold text-soft-white mb-12 leading-tight">
           Join the <span className="text-gradient-sacred">Evolution</span>
@@ -421,7 +421,7 @@ function AchievementCard({
   title,
   desc,
   delay,
-}: { icon: any; title: string; desc: string; delay: number }) {
+}: { icon: ComponentType<{ className?: string; strokeWidth?: number }>; title: string; desc: string; delay: number }) {
   return (
     <div
       className="glass-card p-10 rounded-2xl text-center group hover:-translate-y-4 transition-all duration-700 border border-white/5 hover:border-primary-gold/30"

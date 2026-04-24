@@ -23,23 +23,25 @@ export function GenesisStory() {
 
             <div className="space-y-6 text-lg md:text-xl leading-relaxed font-light text-soft-white/90">
               <p>
-                From the depths of darkness and solitude, a promise was made. 
-                A commitment to walk the path of <span className="text-primary-gold font-medium">Ihsan</span> (Excellence).
+                In Ramadan 2023, before code, before business plans, before architecture,
+                two Arabic documents were written. They were something far older and far
+                more honest: a human being searching for meaning, dignity, and a way to
+                build without betraying the heart.
               </p>
               <p>
-                31 months later, that spiritual foundation has manifested into <span className="text-white font-medium">BIZRA</span> — 
-                an AGI system designed not to dominate, but to serve.
+                <strong>BIZRA was not named after the product. The product grew from the name.</strong>
+                {' '}Three years later, the seed became an architecture — but it remains, at its core, the same seed.
               </p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-8">
               <div className="p-6 border border-primary-gold/10 rounded-xl bg-deep-navy/50">
-                <h4 className="text-primary-gold font-serif text-xl mb-2">The Promise</h4>
-                <p className="text-sm text-soft-white/60">No exploitation. No false promises. Complete dignity for humanity.</p>
+                <h4 className="text-primary-gold font-serif text-xl mb-2">The Seed — البذرة</h4>
+                <p className="text-sm text-soft-white/60">The first origin paper. It carried the seed of freedom — financial, spiritual, and mental. Written in Ramadan 2023, before any system existed.</p>
               </div>
               <div className="p-6 border border-primary-gold/10 rounded-xl bg-deep-navy/50">
-                <h4 className="text-primary-gold font-serif text-xl mb-2">The Result</h4>
-                <p className="text-sm text-soft-white/60">The world's first consciousness safety system with mathematical ethics bounds.</p>
+                <h4 className="text-primary-gold font-serif text-xl mb-2">The Message — الرسالة</h4>
+                <p className="text-sm text-soft-white/60">The second origin paper. A deeply personal declaration that the work ahead must serve meaning before profit, dignity before extraction.</p>
               </div>
             </div>
           </motion.div>

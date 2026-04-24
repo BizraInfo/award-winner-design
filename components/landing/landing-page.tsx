@@ -1,9 +1,9 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState, type ReactNode } from "react"
 import { useLifecycleStore } from "@/store/use-lifecycle-store"
-import { Sparkles, ArrowRight, ShieldCheck, Heart, Leaf, Star, ChevronDown, Monitor, Mail, ExternalLink } from "lucide-react"
-import { motion, AnimatePresence } from "framer-motion"
+import { ArrowRight, ShieldCheck, ChevronDown, Monitor, ExternalLink } from "lucide-react"
+import { motion } from "framer-motion"
 import { SovereignStatus } from "@/components/infrastructure/SovereignStatus"
 
 // GSAP and Chart.js are lazy-loaded in useEffect hooks to reduce initial bundle (~300KB)
@@ -34,7 +34,7 @@ function loadChart() {
 // ============================================
 // SOVEREIGN LANDING PAGE
 // High-fidelity design upgrade based on 
-// "The Sovereign Future" aesthetic.
+// "The Seed" aesthetic — Brand Identity v0.2.
 // ============================================
 
 export function LandingPage() {
@@ -328,7 +328,19 @@ function CrisisSlide() {
   )
 }
 
-function CrisisCard({ icon, title, desc, titleColor = "text-pure-white", borderColor = "" }: any) {
+function CrisisCard({
+  icon,
+  title,
+  desc,
+  titleColor = "text-pure-white",
+  borderColor = "",
+}: {
+  icon: string
+  title: string
+  desc: string
+  titleColor?: string
+  borderColor?: string
+}) {
   return (
     <div className={`glass-panel p-8 rounded-xl hover:translate-y-[-10px] transition-transform duration-500 ${borderColor}`}>
       <div className="text-4xl mb-6">{icon}</div>
@@ -346,7 +358,7 @@ function ArchitectureSlide() {
           <div className="text-radiant-gold text-xs tracking-[0.3em] uppercase mb-4">The Masterpiece</div>
           <h2 className="text-5xl font-cinzel mb-8">BIZRA<br />AEON OMEGA</h2>
           <p className="text-pure-white/70 mb-8">
-            A decentralized, distributed, agentic general intelligence (DDAGI). A sovereign operating system for 8 billion humans.
+            A decentralized, distributed, agent-based operating system built around meaning, proof, and Ihsan — a sovereign path for every human who wants to build without being owned.
           </p>
           <ul className="space-y-4 text-sm text-pure-white/60">
             <li className="flex items-center gap-3"><span className="w-2 h-2 bg-accent-teal rounded-full" />Node0 Genesis Protocol</li>
@@ -365,7 +377,7 @@ function ArchitectureSlide() {
             </div>
             <div className="absolute bottom-6 right-6 text-right">
               <div className="text-xs text-pure-white/40 uppercase">Status</div>
-              <div className="text-accent-teal font-mono">PRODUCTION READY</div>
+              <div className="text-accent-teal font-mono">ARCHITECTURE LOCKED</div>
             </div>
           </div>
         </div>
@@ -384,7 +396,7 @@ function ArchitectureGraph() {
     if (!ctx) return
 
     let animationFrameId: number
-    const nodes: any[] = []
+    const nodes: Array<{ x: number; y: number; vx: number; vy: number; radius: number }> = []
     const nodeCount = 20
 
     const resize = () => {
@@ -457,7 +469,7 @@ function EthicsSlide() {
       <div className="text-center mb-16">
         <div className="font-arabic text-4xl text-radiant-gold mb-2">الإحسان</div>
         <h2 className="text-4xl md:text-5xl font-cinzel">The Ihsan Protocol</h2>
-        <p className="text-pure-white/50 mt-4">Ethics as Physics. Hard mathematical constraints.</p>
+        <p className="text-pure-white/50 mt-4">Build with meaning. Act with proof. Grow with Ihsan.</p>
       </div>
 
       <div className="grid md:grid-cols-3 gap-8">
@@ -473,13 +485,25 @@ function EthicsSlide() {
       </div>
 
       <div className="mt-16 text-center max-w-2xl mx-auto glass-panel p-6 rounded-lg border-l-4 border-radiant-gold">
-        <p className="font-serif italic text-lg text-pure-white/90">\"We do not trust. We verify. If the Ihsan Score drops below 95%, the system halts. Ethics are not guidelines; they are code.\"</p>
+        <p className="font-serif italic text-lg text-pure-white/90">\"Meaning, proof, and Ihsan guide how BIZRA is built and reviewed.\"</p>
       </div>
     </div>
   )
 }
 
-function GaugeChart({ value, label, subtext, color, highlighted = false }: any) {
+function GaugeChart({
+  value,
+  label,
+  subtext,
+  color,
+  highlighted = false,
+}: {
+  value: number
+  label: string
+  subtext: string
+  color: string
+  highlighted?: boolean
+}) {
   const chartRef = useRef<HTMLCanvasElement>(null)
 
   useEffect(() => {
@@ -558,7 +582,17 @@ function EvidenceSlide() {
   )
 }
 
-function EvidenceItem({ icon, title, subtitle, color }: any) {
+function EvidenceItem({
+  icon,
+  title,
+  subtitle,
+  color,
+}: {
+  icon: ReactNode
+  title: string
+  subtitle: string
+  color: string
+}) {
   return (
     <div className="flex items-center gap-4 p-4 glass-panel rounded-lg hover:bg-pure-white/5 transition-colors cursor-pointer group">
       <div className={`${color} p-3 rounded-lg transition-transform group-hover:scale-110`}>{icon}</div>
@@ -641,7 +675,7 @@ function JoinSlide({ onBegin }: { onBegin: () => void }) {
         transition={{ duration: 1 }}
       >
         <div className="text-radiant-gold text-sm tracking-[0.5em] uppercase mb-6">The Next Chapter</div>
-        <h2 className="text-5xl md:text-7xl font-cinzel mb-8 text-pure-white">Join the Sovereign Future</h2>
+        <h2 className="text-5xl md:text-7xl font-cinzel mb-8 text-pure-white">Discover the Seed</h2>
         <p className="text-xl text-pure-white/60 mb-12 leading-relaxed">
           The seed has grown. The foundation is laid. Now we build the forest.<br />
           We are looking for partners who value integrity over hype, and impact over extraction.
