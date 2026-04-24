@@ -611,7 +611,7 @@ export default function GenesisPortal() {
             THE SEALED PROOF
           </motion.h2>
           <motion.p {...fadeUp} className="text-center text-xs font-mono mb-12 opacity-50" style={{ color: C.dim }}>
-            Every action cryptographically sealed · Every claim independently verifiable
+            Every important action is designed to leave a receipt · Claims bound to evidence
           </motion.p>
           <motion.div {...fadeUp}>
             <div

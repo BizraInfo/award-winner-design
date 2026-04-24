@@ -182,7 +182,7 @@ export function EvidencePack() {
               status: "IN-STAGING",
               metrics: "Staging gate + hardening verified",
             },
-            { phase: "Historic Claims", status: "SEE_RECEIPT", metrics: "Open the receipt index for context" },
+            { phase: "Historic Claims", status: "RECEIPT PATH", metrics: "Receipt index pending — see proof notes" },
           ].map((row, i) => (
             <div
               key={i}
@@ -384,10 +384,10 @@ export function EvidencePack() {
           </div>
           <ul className="space-y-6">
             {[
-              "HF Deploy: Consciousness-safe model deployment ready",
-              "Publication: NeurIPS/ICML submission packages prepared",
-              "Scale: BIZRA v0.89 Advanced Mathematics implementation",
-              "Research: Consciousness evolution monitoring operational",
+              "Publish the public receipt index",
+              "Wire reliability cards to live /status data",
+              "Complete privacy and Arabic review gates",
+              "Re-run omni-audit after deployment and bind every public claim to evidence",
             ].map((item, i) => (
               <li key={i} className="flex items-start gap-4 text-gray-400 group-hover:text-gray-300 transition-colors">
                 <div className="w-6 h-6 rounded-full bg-primary-gold/20 text-primary-gold flex items-center justify-center text-xs font-bold shrink-0 mt-0.5 border border-primary-gold/30">
@@ -403,7 +403,7 @@ export function EvidencePack() {
       {/* Final CTA */}
       <div className="text-center pt-16 pb-32">
         <p className="text-primary-gold text-sm uppercase tracking-[0.4em] mb-8 animate-pulse-slow">
-          The Future is Safe
+          The Future Must Be Proven
         </p>
         <h2 className="text-6xl md:text-8xl font-serif font-bold text-soft-white mb-12 leading-tight">
           Join the <span className="text-gradient-sacred">Evolution</span>
