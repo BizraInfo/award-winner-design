@@ -30,7 +30,6 @@ export function TrustSite() {
   }, [])
 
   const onEnter = () => setPhase("SEED_TEST")
-  const showStats = true
 
   const layers = [
     { n: "Human Seed", c: "\u0627\u0644\u0631\u0633\u0627\u0644\u0629 + \u0627\u0644\u0628\u0630\u0631\u0629", t: "\u2014", col: G },
@@ -52,7 +51,7 @@ export function TrustSite() {
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
           <span style={{ fontFamily: "var(--font-cinzel), serif", color: G, fontSize: 14, fontWeight: 600, letterSpacing: 4 }}>BIZRA</span>
-          <span style={{ fontFamily: "var(--font-jetbrains), monospace", fontSize: 11, color: DIMR, letterSpacing: 3 }}>DDAGI OS</span>
+          <span style={{ fontFamily: "var(--font-jetbrains), monospace", fontSize: 11, color: DIMR, letterSpacing: 3 }}>THE SEED</span>
         </div>
         <button onClick={onEnter} style={{
           background: `${G}12`, border: `1px solid ${G}40`, color: G, padding: "8px 20px", borderRadius: 4, fontSize: 11,
@@ -71,7 +70,7 @@ export function TrustSite() {
           backgroundSize: "42px 42px", maskImage: "linear-gradient(180deg,rgba(0,0,0,.6),transparent)"
         }} />
         <div style={{ position: "relative", maxWidth: 1100, margin: "0 auto" }}>
-          <F d={200}><div style={{ fontFamily: "var(--font-jetbrains), monospace", fontSize: 11, color: G, letterSpacing: 3 }}>DISTRIBUTED DECENTRALIZED AGI OPERATING SYSTEM</div></F>
+          <F d={200}><div style={{ fontFamily: "var(--font-jetbrains), monospace", fontSize: 11, color: G, letterSpacing: 3 }}>THE SEED OF SOVEREIGN INTELLIGENCE</div></F>
           <F d={500}><h1 style={{ fontFamily: "var(--font-playfair), serif", fontSize: 56, lineHeight: 0.96, margin: "20px 0", maxWidth: 800, fontWeight: 700 }}>From human need<br />to sovereign intelligence.</h1></F>
           <F d={800}><p style={{ color: MUT, fontSize: 17, maxWidth: 700, lineHeight: 1.7, margin: 0 }}>BIZRA turns every human into a sovereign node, every node into a living seed, and every verified act of growth into shared intelligence, capability, and value.</p></F>
           <F d={1100}>
@@ -84,7 +83,7 @@ export function TrustSite() {
           </F>
           <F d={1400}>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 16, marginTop: 48 }}>
-              {[{ v: "12,680", l: "Tests Passing" }, { v: "24", l: "Rust Crates" }, { v: "654+", l: "Commits" }, { v: "0.95+", l: "Ihsan Floor" }].map((k, i) => (
+              {[{ v: "24", l: "Rust Crates" }, { v: "654+", l: "Commits" }, { v: "7", l: "Pillars" }, { v: "Live", l: "Receipt Chain" }].map((k, i) => (
                 <div key={i} style={{ padding: "16px 18px", borderRadius: 16, background: "rgba(255,255,255,.025)", border: `1px solid ${LINE}`, backdropFilter: "blur(12px)" }}>
                   <div style={{ fontSize: 28, fontWeight: 800, letterSpacing: -1, color: G2 }}>{k.v}</div>
                   <div style={{ fontSize: 11, color: DIM, letterSpacing: 1.2, textTransform: "uppercase", marginTop: 4 }}>{k.l}</div>
@@ -124,7 +123,7 @@ export function TrustSite() {
         </div>
 
         {/* Seven-layer stack */}
-        <div style={{ fontFamily: "var(--font-jetbrains), monospace", fontSize: 13, color: G, letterSpacing: 3, marginBottom: 8 }}>SEVEN-LAYER DDAGI STACK</div>
+        <div style={{ fontFamily: "var(--font-jetbrains), monospace", fontSize: 13, color: G, letterSpacing: 3, marginBottom: 8 }}>SEVEN-LAYER BIZRA STACK</div>
         <h2 style={{ fontFamily: "var(--font-playfair), serif", fontSize: 32, margin: "0 0 24px" }}>Every layer has code. Every layer has tests.</h2>
         <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 48 }}>
           {layers.map((l, i) => (
@@ -150,7 +149,7 @@ export function TrustSite() {
             background: G, color: BG, border: "none", padding: "16px 48px", borderRadius: 6, fontSize: 13,
             fontFamily: "var(--font-jetbrains), monospace", letterSpacing: 3, cursor: "pointer", fontWeight: 600
           }}>BECOME A NODE</button>
-          <div style={{ marginTop: 12, fontSize: 11, color: DIM }}>Zero cloud. Zero cost. Your keys. Your sovereignty.</div>
+          <div style={{ marginTop: 12, fontSize: 11, color: DIM }}>Your node. Your keys. Your path. Local-first and cloud-optional.</div>
         </div>
       </div>
 

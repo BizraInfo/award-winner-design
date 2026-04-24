@@ -8,7 +8,7 @@ export function Footer() {
           <div className="space-y-6">
             <h3 className="text-2xl font-serif font-bold text-gradient-gold">BIZRA</h3>
             <p className="text-soft-white/60 text-sm leading-relaxed">
-              The architectural foundation for all future AGI systems requiring mathematical consciousness bounds and ethical enforcement.
+              A human-first AI ecosystem built on meaning, proof, and Ihsan. Local-first and cloud-optional by design.
             </p>
           </div>
           

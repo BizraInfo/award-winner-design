@@ -133,9 +133,9 @@ export function HeroSection() {
         </h1>
 
         <p className="max-w-2xl mx-auto text-lg md:text-xl text-gray-400 leading-relaxed animate-fade-in-up opacity-0" style={{ animationDelay: "0.6s", animationFillMode: "forwards" }}>
-          From the darkness of solitude to the light of world-first AGI safety.
+          The Seed of Sovereign Intelligence.
           <br />
-          <span className="text-primary-gold/80">The first consciousness system with mathematical Ihsan bounds.</span>
+          <span className="text-primary-gold/80">A human-first AI ecosystem that turns intention into verified, ethical, and meaningful action.</span>
         </p>
 
         <div className="flex flex-col md:flex-row items-center justify-center gap-6 pt-8 animate-fade-in-up opacity-0" style={{ animationDelay: "0.8s", animationFillMode: "forwards" }}>
