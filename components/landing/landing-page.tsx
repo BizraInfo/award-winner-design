@@ -358,7 +358,7 @@ function ArchitectureSlide() {
           <div className="text-radiant-gold text-xs tracking-[0.3em] uppercase mb-4">The Masterpiece</div>
           <h2 className="text-5xl font-cinzel mb-8">BIZRA<br />AEON OMEGA</h2>
           <p className="text-pure-white/70 mb-8">
-            A decentralized, distributed, agentic general intelligence (DDAGI). A sovereign operating system for 8 billion humans.
+            A decentralized, distributed, agent-based operating system built around meaning, proof, and Ihsan — a sovereign path for every human who wants to build without being owned.
           </p>
           <ul className="space-y-4 text-sm text-pure-white/60">
             <li className="flex items-center gap-3"><span className="w-2 h-2 bg-accent-teal rounded-full" />Node0 Genesis Protocol</li>
