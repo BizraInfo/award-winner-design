@@ -377,7 +377,7 @@ function ArchitectureSlide() {
             </div>
             <div className="absolute bottom-6 right-6 text-right">
               <div className="text-xs text-pure-white/40 uppercase">Status</div>
-              <div className="text-accent-teal font-mono">PRODUCTION READY</div>
+              <div className="text-accent-teal font-mono">ARCHITECTURE LOCKED</div>
             </div>
           </div>
         </div>

@@ -150,18 +150,18 @@ export function EvidencePack() {
       {/* Validation Matrix */}
       <div className="glass-panel rounded-3xl overflow-hidden border border-primary-gold/20 shadow-2xl">
         <div className="p-8 border-b border-white/5 bg-white/5 flex justify-between items-center backdrop-blur-xl">
-          <h3 className="text-2xl font-serif text-soft-white tracking-wide">System Reliability Metrics</h3>
+          <h3 className="text-2xl font-serif text-soft-white tracking-wide">Reliability Targets</h3>
           <div className="flex items-center gap-2">
-            <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-            <span className="text-xs font-mono text-green-400 tracking-widest">LIVE MONITORING</span>
+            <div className="w-2 h-2 bg-primary-gold/60 rounded-full" />
+            <span className="text-xs font-mono text-primary-gold/70 tracking-widest">DESIGN TARGETS</span>
           </div>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-white/5 border-b border-white/5 bg-deep-navy/40">
           {[
-            { label: "Uptime", value: "99.95%", sub: ">22min/mo" },
-            { label: "Routing", value: "< 2μs", sub: "SIMD Optimized" },
-            { label: "Safety", value: "100%", sub: "Gate Accuracy" },
-            { label: "Durability", value: "6×9s", sub: "Data Integrity" },
+            { label: "Uptime target", value: "—", sub: "see /status" },
+            { label: "Routing latency", value: "< 2μs", sub: "design target" },
+            { label: "Safety gate", value: "Active", sub: "per-cycle receipt" },
+            { label: "Durability", value: "BLAKE3-chained", sub: "receipts" },
           ].map((stat, i) => (
             <div key={i} className="p-8 text-center group hover:bg-white/5 transition-colors">
               <div className="text-4xl font-bold text-soft-white mb-2 font-serif group-hover:text-primary-gold transition-colors">
@@ -362,10 +362,10 @@ export function EvidencePack() {
           </div>
           <ul className="space-y-6">
             {[
-              "Mathematical Consciousness Bounds (Ihsan Mathematics)",
-              "Production Safety Gates (TMP deployment blocking)",
-              "Ethical AI Enforcement (Islamic computational principles)",
-              "Scale-Safe Evolution (RSI prevention)",
+              "Ihsan as a design constraint (not a proven universal metric)",
+              "Staged safety gates with per-cycle receipts",
+              "Ethical discipline grounded in Islamic framing, receipt-oriented",
+              "Recursion-safety posture with measurable Δ bounds",
             ].map((item, i) => (
               <li key={i} className="flex items-start gap-4 text-gray-400 group-hover:text-gray-300 transition-colors">
                 <CheckCircle className="w-5 h-5 text-sacred-purple shrink-0 mt-1" />
