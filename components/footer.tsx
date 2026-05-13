@@ -8,7 +8,7 @@ export function Footer() {
           <div className="space-y-6">
             <h3 className="text-2xl font-serif font-bold text-gradient-gold">BIZRA</h3>
             <p className="text-soft-white/60 text-sm leading-relaxed">
-              The architectural foundation for all future AGI systems requiring mathematical consciousness bounds and ethical enforcement.
+              A human-first AI ecosystem built on meaning, proof, and Ihsan. Local-first and cloud-optional by design.
             </p>
           </div>
           
@@ -17,7 +17,7 @@ export function Footer() {
             <ul className="space-y-4 text-soft-white/70 text-sm">
               <li className="hover:text-primary-gold transition-colors cursor-pointer">BIZRA v0.88.1 Status</li>
               <li className="hover:text-primary-gold transition-colors cursor-pointer">Safety Gates</li>
-              <li className="hover:text-primary-gold transition-colors cursor-pointer">Ihsan Mathematics</li>
+              <li className="hover:text-primary-gold transition-colors cursor-pointer">Ihsan Framework</li>
               <li className="hover:text-primary-gold transition-colors cursor-pointer">Documentation</li>
             </ul>
           </div>

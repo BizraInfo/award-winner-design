@@ -332,7 +332,7 @@ export function TerminalSettings() {
           Your keys. Your data. Your compute. Sovereign by design.
         </p>
         <p className="text-[9px] text-slate-700 mt-1">
-          Ed25519 identity · BLAKE2b evidence chain · Zero cloud dependency
+          Ed25519 identity · BLAKE2b evidence chain · Local-first, cloud-optional by design
         </p>
       </div>
     </div>
