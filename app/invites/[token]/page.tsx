@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { Shield, Loader2, AlertCircle, CheckCircle } from "lucide-react"
+import { csrfFetch } from "@/lib/security/csrf-client"
 
 type InvitePreview = {
   email: string
@@ -58,7 +59,7 @@ export default function InviteAcceptPage() {
     const invite = state.phase === "preview" ? state.invite : null
     setState({ phase: "accepting" })
     try {
-      const res = await fetch(`/api/invites/${encodeURIComponent(params.token)}/accept`, {
+      const res = await csrfFetch(`/api/invites/${encodeURIComponent(params.token)}/accept`, {
         method: "POST",
       })
       if (res.status === 401 && invite) {

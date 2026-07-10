@@ -14,7 +14,7 @@ import { EncryptedStorage } from "@/lib/security/encrypted-storage"
 // Phase 6: COMMUNITY - SAT layer, spaces, collaboration
 // Phase 7: LEGACY - Long-term impact record
 
-export type LifecyclePhase = 
+export type LifecyclePhase =
   | "FIRST_ENCOUNTER"
   | "SEED_TEST"
   | "PAT_INTRO"
@@ -29,7 +29,7 @@ export type LifecyclePhase =
 // ============================================
 export interface SeedTestProfile {
   // Q1: What do you most want right now?
-  primaryDesire: 
+  primaryDesire:
     | "income"
     | "skills"
     | "project"
@@ -59,7 +59,7 @@ export interface SeedTestProfile {
 // ============================================
 // PERSONAL AGENT TEAM (Phase 3)
 // ============================================
-export type AgentRole = 
+export type AgentRole =
   | "master_reasoner"
   | "memory_architect"
   | "creative_synthesizer"
@@ -276,7 +276,7 @@ interface LifecycleState {
   publicKey: string
   privateKeyJwk: JsonWebKey | null
   agentIds: string[]
-  genesisReceipt: { signature: string; constitutionHash: string; activatedAt: string } | null
+  genesisReceipt: { signature: string; constitutionHash: string; activatedAt: string; persistenceMode?: "server_redis" | "client_local" } | null
   teachConfig: TeachConfig
 
   // Phase 2: Seed Test
@@ -285,20 +285,20 @@ interface LifecycleState {
   // Phase 3: PAT
   patAgents: PATAgent[]
   patOnboardComplete: boolean
-  
+
   // Phase 4: First Session
   sevenDayPlan: SevenDayPlan | null
-  
+
   // Phase 5: Daily Loop
   lastCheckIn: Date | null
   streakDays: number
-  
+
   // Phase 6: Node
   nodeStatus: NodeStatus
-  
+
   // Phase 7: Community
   communityProfile: CommunityProfile
-  
+
   // Phase 8: Legacy
   legacyRecord: LegacyRecord
 
@@ -350,7 +350,7 @@ interface LifecycleActions {
   // Sovereign identity
   setUserName: (name: string) => void
   setNodeId: (id: string) => void
-  setGenesisIdentity: (identity: { nodeId: string; publicKey: string; privateKeyJwk: JsonWebKey; agentIds: string[]; signature: string; constitutionHash: string; activatedAt: string }) => void
+  setGenesisIdentity: (identity: { nodeId: string; publicKey: string; privateKeyJwk: JsonWebKey; agentIds: string[]; signature: string; constitutionHash: string; activatedAt: string; persistenceMode?: "server_redis" | "client_local" }) => void
   setTeachConfig: (config: TeachConfig) => void
 
   // Onboarding
@@ -596,7 +596,7 @@ export const useLifecycleStore = create<LifecycleState & LifecycleActions>()(
 
         // Phase transitions
         setPhase: (phase) => set({ phase }),
-        
+
         advancePhase: () => {
           const currentIndex = PHASE_ORDER.indexOf(get().phase)
           if (currentIndex < PHASE_ORDER.length - 1) {
@@ -628,7 +628,7 @@ export const useLifecycleStore = create<LifecycleState & LifecycleActions>()(
             // Auto-recommend agents based on profile
             const { primaryDesire } = seedProfile
             const recommended: AgentRole[] = []
-            
+
             if (primaryDesire === "income") {
               recommended.push("execution_planner", "communicator")
             } else if (primaryDesire === "skills") {
@@ -647,10 +647,10 @@ export const useLifecycleStore = create<LifecycleState & LifecycleActions>()(
 
         // Phase 3: PAT
         selectAgent: (agentId, isPrimary = false) => set((state) => ({
-          patAgents: state.patAgents.map(agent => 
-            agent.id === agentId 
+          patAgents: state.patAgents.map(agent =>
+            agent.id === agentId
               ? { ...agent, isSelected: true, isPrimary: isPrimary || agent.isPrimary }
-              : isPrimary 
+              : isPrimary
                 ? { ...agent, isPrimary: false }
                 : agent
           )
@@ -674,7 +674,7 @@ export const useLifecycleStore = create<LifecycleState & LifecycleActions>()(
         completePATOnboard: () => {
           const selectedAgents = get().patAgents.filter(a => a.isSelected)
           const hasPrimary = selectedAgents.some(a => a.isPrimary)
-          
+
           if (selectedAgents.length > 0 && hasPrimary) {
             set({
               patOnboardComplete: true,
@@ -686,7 +686,7 @@ export const useLifecycleStore = create<LifecycleState & LifecycleActions>()(
         // Phase 4: First Session
         createSevenDayPlan: (goal, category) => {
           const tasks: DayTask[] = []
-          
+
           // Generate 7 days of tasks based on goal
           for (let day = 1; day <= 7; day++) {
             tasks.push({
@@ -715,7 +715,7 @@ export const useLifecycleStore = create<LifecycleState & LifecycleActions>()(
 
         completeTask: (taskId) => set((state) => {
           if (!state.sevenDayPlan) return state
-          
+
           return {
             sevenDayPlan: {
               ...state.sevenDayPlan,
@@ -742,7 +742,7 @@ export const useLifecycleStore = create<LifecycleState & LifecycleActions>()(
         recordCheckIn: () => set((state) => {
           const now = new Date()
           const lastCheckIn = state.lastCheckIn
-          
+
           let newStreak = state.streakDays
           if (lastCheckIn) {
             const daysSinceLastCheckIn = Math.floor(
@@ -791,12 +791,12 @@ export const useLifecycleStore = create<LifecycleState & LifecycleActions>()(
         recordContribution: (tasks, tokens) => set((state) => {
           const now = new Date()
           const weekKey = `${now.getFullYear()}-W${Math.ceil(now.getDate() / 7)}`
-          
+
           const existingWeekIndex = state.nodeStatus.contributions.weeklyStats
             .findIndex(w => w.week === weekKey)
 
           const newWeeklyStats = [...state.nodeStatus.contributions.weeklyStats]
-          
+
           if (existingWeekIndex >= 0) {
             newWeeklyStats[existingWeekIndex] = {
               ...newWeeklyStats[existingWeekIndex],
@@ -879,13 +879,14 @@ export const useLifecycleStore = create<LifecycleState & LifecycleActions>()(
             signature: identity.signature,
             constitutionHash: identity.constitutionHash,
             activatedAt: identity.activatedAt,
+            persistenceMode: identity.persistenceMode ?? "client_local",
           },
         }),
         setTeachConfig: (config) => set({ teachConfig: config }),
 
         // Onboarding
         setOnboardingStep: (step) => set({ onboardingStep: step }),
-        
+
         completeOnboarding: () => set({
           isOnboarding: false,
           phase: "DAILY_LOOP"

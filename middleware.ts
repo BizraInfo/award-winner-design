@@ -21,6 +21,12 @@
 import { jwtVerify, type JWTPayload } from 'jose';
 import { NextRequest, NextResponse } from 'next/server';
 import { DEFAULT_CSRF_CONFIG } from '@/lib/security/csrf-config';
+import {
+  BIZRA_BETA_ADMIT_COOKIE,
+  isBetaProtectedApiPath,
+  isInviteOnlyAccess,
+} from '@/lib/beta/access-mode';
+import { verifyBetaAdmitTokenEdge } from '@/lib/beta/admit-token-edge';
 
 const API_PREFIX = '/api/';
 const ACCESS_TOKEN_COOKIE = 'access_token';
@@ -35,6 +41,8 @@ const PUBLIC_API_PATHS = new Set<string>([
   '/api/ethics',
   '/api/genesis',
   '/api/node/activate',
+  '/api/beta/status',
+  '/api/beta/verify-invite',
 ]);
 
 const API_RATE_LIMIT = { max: 60, windowMs: 60_000 };
@@ -69,6 +77,9 @@ function isVerboseHealthRequest(req: NextRequest): boolean {
 function isPublicRequest(req: NextRequest): boolean {
   if (PUBLIC_API_PATHS.has(req.nextUrl.pathname)) return true;
   if (req.nextUrl.pathname === '/api/health' && !isVerboseHealthRequest(req)) {
+    return true;
+  }
+  if (req.method === 'GET' && /^\/api\/invites\/[^/]+$/.test(req.nextUrl.pathname)) {
     return true;
   }
   return false;
@@ -234,6 +245,28 @@ export async function middleware(req: NextRequest) {
     const response = NextResponse.next();
     attachRateLimitHeaders(response, limits.max, rate.remaining, rate.resetAt);
     return response;
+  }
+
+  // Beta invite-only: block sovereign onboarding APIs without admit cookie.
+  if (
+    isInviteOnlyAccess() &&
+    isMutationMethod(req.method) &&
+    isBetaProtectedApiPath(req.nextUrl.pathname)
+  ) {
+    const admitToken = req.cookies.get(BIZRA_BETA_ADMIT_COOKIE)?.value ?? null;
+    const admitted = await verifyBetaAdmitTokenEdge(admitToken);
+    if (!admitted) {
+      const response = NextResponse.json(
+        {
+          error: 'Beta invitation required',
+          code: 'BETA_INVITE_REQUIRED',
+          admitted: false,
+        },
+        { status: 403 }
+      );
+      attachRateLimitHeaders(response, limits.max, rate.remaining, rate.resetAt);
+      return response;
+    }
   }
 
   // Health verbose gate: rewrite to non-verbose if unauthenticated.

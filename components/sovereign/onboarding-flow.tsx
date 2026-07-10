@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback, type ReactNode } from "react"
 import { useLifecycleStore } from "@/store/use-lifecycle-store"
 import type { TeachConfig } from "@/store/use-lifecycle-store"
 import { generateSovereignKeypair, signWithSovereignKey } from "@/lib/crypto/sovereign-keygen"
+import { evaluatePersistenceSubstrate, isRedisRequiredForOnboarding, type PersistenceSubstrateMode } from "@/lib/onboarding/persistence-gate"
 import { G, BG, GR, TXT, DIM, DIMR, LINE, PAT, SAT, CY, PU, TEACH_QUESTIONS } from "./design-tokens"
 
 // Row 10 ratchet: presentation-only waits. Semantically just setTimeout, but
@@ -80,6 +81,7 @@ export interface GenesisIdentity {
   signature: string
   constitutionHash: string
   activatedAt: string
+  persistenceMode: PersistenceSubstrateMode
 }
 
 export function GenesisFlow({ onDone }: { onDone: (name: string, identity: GenesisIdentity) => void }) {
@@ -143,21 +145,23 @@ export function GenesisFlow({ onDone }: { onDone: (name: string, identity: Genes
       await presentationDelay(200, "post-sign-reveal")
       setLines(p => [...p, `Signed genesis envelope  —  sig:${signature.slice(0, 16)}…`])
 
-      // Row 10 ratchet: gate the final handoff on a real backend readiness
-      // probe instead of a hardcoded delay. If the persistence substrate is
-      // not ok, surface the truth rather than advance theatrically.
+      // Row 10 ratchet: probe backend persistence honestly.
+      // - Redis ok → server-backed durability path
+      // - Redis disabled → client-local only (localStorage); still sovereign
+      // - Redis degraded → fail closed
       setLines(p => [...p, "Verifying persistence substrate..."])
+      let persistenceMode: PersistenceSubstrateMode = "client_local"
       try {
         const h = await fetch("/api/health")
-        const hj = await h.json()
-        if (hj.redis !== "ok") {
-          throw new Error(
-            hj.redis === "disabled"
-              ? "Persistence disabled (REDIS_URL not set) — cannot activate sovereign node."
-              : "Persistence substrate not ready — cannot activate sovereign node."
-          )
+        const hj = await h.json() as { redis?: string }
+        const gate = evaluatePersistenceSubstrate(String(hj.redis ?? "unknown"), {
+          requireRedis: isRedisRequiredForOnboarding(),
+        })
+        if (!gate.ok) {
+          throw new Error(gate.error)
         }
-        setLines(p => [...p, `Persistence substrate: ${hj.redis}`])
+        persistenceMode = gate.mode
+        setLines(p => [...p, gate.statusLine])
       } catch (e) {
         const msg = e instanceof Error ? e.message : String(e)
         setError(msg)
@@ -174,6 +178,7 @@ export function GenesisFlow({ onDone }: { onDone: (name: string, identity: Genes
         signature,
         constitutionHash: data.constitutionHash,
         activatedAt: data.activatedAt,
+        persistenceMode,
       })
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e)

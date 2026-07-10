@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { UserPlus, X, Loader2 } from "lucide-react"
+import { csrfFetch } from "@/lib/security/csrf-client"
 
 interface InviteModalProps {
   isOpen: boolean
@@ -43,7 +44,7 @@ export function InviteModal({ isOpen, onClose, onCreated, workspaceId, currentUs
     setSending(true)
 
     try {
-      const res = await fetch(`/api/workspaces/${encodeURIComponent(workspaceId)}/invites`, {
+      const res = await csrfFetch(`/api/workspaces/${encodeURIComponent(workspaceId)}/invites`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: email.trim(), role, message: message.trim() || undefined }),
@@ -111,7 +112,7 @@ export function InviteModal({ isOpen, onClose, onCreated, workspaceId, currentUs
                 placeholder="colleague@example.com"
                 required
                 autoFocus
-                className="w-full bg-[#0D1F3C] border border-[#C9A962]/10 rounded-lg px-3 py-2 
+                className="w-full bg-[#0D1F3C] border border-[#C9A962]/10 rounded-lg px-3 py-2
                            text-[#F8F6F1] placeholder-gray-600 text-sm
                            focus:outline-none focus:border-[#C9A962]/40 transition-colors"
               />

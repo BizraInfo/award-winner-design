@@ -25,6 +25,23 @@ function getCSRFTokenFromCookie(): string | null {
   return null;
 }
 
+async function ensureCSRFToken(): Promise<string | null> {
+  const existing = getCSRFTokenFromCookie();
+  if (existing) return existing;
+
+  const response = await fetch('/api/csrf-token', {
+    method: 'GET',
+    credentials: 'include',
+    cache: 'no-store',
+  });
+  if (!response.ok) {
+    return null;
+  }
+
+  const body = (await response.json().catch(() => null)) as { token?: string } | null;
+  return getCSRFTokenFromCookie() ?? body?.token ?? null;
+}
+
 /**
  * CSRF token hook for client components.
  */
@@ -32,7 +49,7 @@ export function useCSRFToken() {
   const [token, setToken] = React.useState<string | null>(null);
 
   React.useEffect(() => {
-    setToken(getCSRFTokenFromCookie());
+    ensureCSRFToken().then(setToken).catch(() => setToken(null));
   }, []);
 
   return token;
@@ -45,8 +62,10 @@ export async function csrfFetch(
   url: string,
   options: RequestInit = {}
 ): Promise<Response> {
-  const csrfToken = getCSRFTokenFromCookie();
   const method = options.method || 'GET';
+  const csrfToken = ['GET', 'HEAD', 'OPTIONS'].includes(method)
+    ? getCSRFTokenFromCookie()
+    : await ensureCSRFToken();
 
   const headers = new Headers(options.headers);
   if (csrfToken && !['GET', 'HEAD', 'OPTIONS'].includes(method)) {
@@ -59,4 +78,3 @@ export async function csrfFetch(
     credentials: 'include',
   });
 }
-

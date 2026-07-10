@@ -16,7 +16,12 @@ function F({ children, d = 0, s = {} }: { children: ReactNode; d?: number; s?: R
 
 import { LiveNetworkStats } from "./live-network-stats"
 
-export function TrustSite() {
+type TrustSiteProps = {
+  betaLabel?: string
+  onInitialize?: () => void
+}
+
+export function TrustSite({ betaLabel, onInitialize }: TrustSiteProps = {}) {
   const setPhase = useLifecycleStore(s => s.setPhase)
   const [hov, setHov] = useState(false)
   const [sy, setSy] = useState(0)
@@ -29,7 +34,11 @@ export function TrustSite() {
     return () => el?.removeEventListener("scroll", h)
   }, [])
 
-  const onEnter = () => setPhase("SEED_TEST")
+  const onEnter = () => {
+    if (onInitialize) onInitialize()
+    else setPhase("SEED_TEST")
+  }
+  const showStats = true
 
   const layers = [
     { n: "Human Seed", c: "\u0627\u0644\u0631\u0633\u0627\u0644\u0629 + \u0627\u0644\u0628\u0630\u0631\u0629", t: "\u2014", col: G },
@@ -52,6 +61,12 @@ export function TrustSite() {
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
           <span style={{ fontFamily: "var(--font-cinzel), serif", color: G, fontSize: 14, fontWeight: 600, letterSpacing: 4 }}>BIZRA</span>
           <span style={{ fontFamily: "var(--font-jetbrains), monospace", fontSize: 11, color: DIMR, letterSpacing: 3 }}>THE SEED</span>
+          {betaLabel && (
+            <span style={{
+              fontFamily: "var(--font-jetbrains), monospace", fontSize: 8, color: G, letterSpacing: 2,
+              border: `1px solid ${G}40`, padding: "3px 8px", borderRadius: 3,
+            }}>{betaLabel}</span>
+          )}
         </div>
         <button onClick={onEnter} style={{
           background: `${G}12`, border: `1px solid ${G}40`, color: G, padding: "8px 20px", borderRadius: 4, fontSize: 11,
