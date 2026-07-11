@@ -9,7 +9,6 @@ module.exports = {
       // URLs to audit
       url: [
         'http://localhost:3000/',
-        'http://localhost:3000/showcase',
       ],
       
       // Number of runs for statistical significance
