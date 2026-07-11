@@ -56,7 +56,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
 
       await sendInviteEmail({
         to: invite.email,
-        inviterName: user.email,
+        inviterName: effectiveUser.email,
         workspaceName: workspaceId,
         role: invite.role,
         acceptUrl,

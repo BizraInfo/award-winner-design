@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react"
 import { RefreshCw, XCircle, Mail, Clock, Loader2 } from "lucide-react"
+import { csrfFetch } from "@/lib/security/csrf-client"
 
 interface Invite {
   id: string
@@ -46,7 +47,7 @@ export function PendingInvitesList({ workspaceId, refreshSignal = 0 }: PendingIn
   const handleResend = async (inviteId: string) => {
     setActionLoading(inviteId)
     try {
-      const res = await fetch(
+      const res = await csrfFetch(
         `/api/workspaces/${encodeURIComponent(workspaceId)}/invites/${inviteId}/resend`,
         { method: "POST" }
       )
@@ -65,7 +66,7 @@ export function PendingInvitesList({ workspaceId, refreshSignal = 0 }: PendingIn
   const handleRevoke = async (inviteId: string) => {
     setActionLoading(inviteId)
     try {
-      const res = await fetch(
+      const res = await csrfFetch(
         `/api/workspaces/${encodeURIComponent(workspaceId)}/invites/${inviteId}/revoke`,
         { method: "POST" }
       )
@@ -123,7 +124,7 @@ export function PendingInvitesList({ workspaceId, refreshSignal = 0 }: PendingIn
         return (
           <div
             key={invite.id}
-            className="bg-[#0D1F3C] border border-[#C9A962]/10 rounded-lg px-4 py-3 
+            className="bg-[#0D1F3C] border border-[#C9A962]/10 rounded-lg px-4 py-3
                        flex items-center justify-between gap-4"
           >
             <div className="flex items-center gap-3 min-w-0">
@@ -153,7 +154,7 @@ export function PendingInvitesList({ workspaceId, refreshSignal = 0 }: PendingIn
                     onClick={() => handleResend(invite.id)}
                     disabled={actionLoading === invite.id}
                     title="Resend invite"
-                    className="p-1.5 text-gray-500 hover:text-[#C9A962] transition-colors 
+                    className="p-1.5 text-gray-500 hover:text-[#C9A962] transition-colors
                                disabled:opacity-50"
                   >
                     {actionLoading === invite.id ? (
@@ -166,7 +167,7 @@ export function PendingInvitesList({ workspaceId, refreshSignal = 0 }: PendingIn
                     onClick={() => handleRevoke(invite.id)}
                     disabled={actionLoading === invite.id}
                     title="Revoke invite"
-                    className="p-1.5 text-gray-500 hover:text-red-400 transition-colors 
+                    className="p-1.5 text-gray-500 hover:text-red-400 transition-colors
                                disabled:opacity-50"
                   >
                     <XCircle className="w-4 h-4" />

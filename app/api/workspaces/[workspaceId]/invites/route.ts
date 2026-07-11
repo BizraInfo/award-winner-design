@@ -94,7 +94,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
         role: role as InviteRole,
         tokenHash,
         status: 'pending' as const,
-        invitedBy: user.sub,
+        invitedBy: effectiveUser.sub,
         createdAt: now,
         expiresAt: now + INVITE_TTL_MS,
         resentCount: 0,
@@ -106,7 +106,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
 
       await sendInviteEmail({
         to: email,
-        inviterName: user.email,
+        inviterName: effectiveUser.email,
         workspaceName: workspaceId,
         role,
         acceptUrl,

@@ -14,6 +14,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { createHash, createPublicKey, verify } from "node:crypto";
+import { requireBetaAdmission } from "@/lib/beta/require-admission";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -34,6 +35,9 @@ interface ResourceSettings {
 const ED25519_SPKI_PREFIX = Buffer.from("302a300506032b6570032100", "hex");
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
+  const betaBlock = await requireBetaAdmission();
+  if (betaBlock) return betaBlock;
+
   let body: {
     nodeId?: string;
     publicKey?: string;

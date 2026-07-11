@@ -9,6 +9,14 @@ import type { TeachConfig } from "@/store/use-lifecycle-store"
 import { TrustSite } from "@/components/sovereign/trust-site"
 import { SplashScreen, GenesisFlow, TeachSteps, Assembly, type GenesisIdentity } from "@/components/sovereign/onboarding-flow"
 import { CommandCenter } from "@/components/sovereign/command-center"
+import { BetaInviteGate } from "@/components/sovereign/beta-invite-gate"
+
+type BetaStatus = {
+  mode: "invite_only" | "public"
+  admitted: boolean
+  invite_only: boolean
+  label: string
+}
 
 // ============================================
 // LIFECYCLE ROUTER
@@ -28,6 +36,8 @@ export function LifecycleRouter() {
   const phase = useLifecyclePhase()
   const [mounted, setMounted] = useState(false)
   const [showSplash, setShowSplash] = useState(false)
+  const [betaStatus, setBetaStatus] = useState<BetaStatus | null>(null)
+  const [showBetaGate, setShowBetaGate] = useState(false)
 
   const setPhase = useLifecycleStore(s => s.setPhase)
   const setUserName = useLifecycleStore(s => s.setUserName)
@@ -36,7 +46,44 @@ export function LifecycleRouter() {
   const userName = useLifecycleStore(s => s.userName)
   const teachConfig = useLifecycleStore(s => s.teachConfig)
 
+  const refreshBetaStatus = useCallback(async () => {
+    try {
+      const res = await fetch("/api/beta/status", { cache: "no-store" })
+      if (!res.ok) return
+      const data = await res.json()
+      setBetaStatus({
+        mode: data.mode,
+        admitted: Boolean(data.admitted),
+        invite_only: Boolean(data.invite_only),
+        label: data.label ?? "BETA",
+      })
+    } catch {
+      setBetaStatus(null)
+    }
+  }, [])
+
   useEffect(() => { setMounted(true) }, [])
+  useEffect(() => { void refreshBetaStatus() }, [refreshBetaStatus])
+
+  const requestOnboarding = useCallback(() => {
+    if (betaStatus?.invite_only && !betaStatus.admitted) {
+      setShowBetaGate(true)
+      return
+    }
+    setPhase("SEED_TEST")
+  }, [betaStatus, setPhase])
+
+  const handleBetaAdmitted = useCallback(() => {
+    setShowBetaGate(false)
+    void refreshBetaStatus().then(() => setPhase("SEED_TEST"))
+  }, [refreshBetaStatus, setPhase])
+
+  const needsBetaGate =
+    showBetaGate ||
+    (betaStatus?.invite_only === true &&
+      !betaStatus.admitted &&
+      phase !== "FIRST_ENCOUNTER" &&
+      !userName)
 
   // Handle splash → genesis transition
   const handleSplashDone = useCallback(() => {
@@ -69,6 +116,10 @@ export function LifecycleRouter() {
     return <LoadingScreen />
   }
 
+  if (needsBetaGate) {
+    return <BetaInviteGate onAdmitted={handleBetaAdmitted} />
+  }
+
   return (
     <AnimatePresence mode="wait">
       <motion.div
@@ -92,7 +143,12 @@ export function LifecycleRouter() {
 
     switch (phase) {
       case "FIRST_ENCOUNTER":
-        return <TrustSite />
+        return (
+          <TrustSite
+            betaLabel={betaStatus?.invite_only ? betaStatus.label : undefined}
+            onInitialize={requestOnboarding}
+          />
+        )
 
       case "SEED_TEST":
         return <GenesisFlow onDone={handleGenesisDone} />
@@ -110,7 +166,12 @@ export function LifecycleRouter() {
         return <CommandCenter />
 
       default:
-        return <TrustSite />
+        return (
+          <TrustSite
+            betaLabel={betaStatus?.invite_only ? betaStatus.label : undefined}
+            onInitialize={requestOnboarding}
+          />
+        )
     }
   }
 }

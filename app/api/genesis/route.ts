@@ -21,6 +21,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { createHash } from "node:crypto";
+import { requireBetaAdmission } from "@/lib/beta/require-admission";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -42,6 +43,9 @@ function sha256(input: string | Buffer): string {
 
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
+  const betaBlock = await requireBetaAdmission();
+  if (betaBlock) return betaBlock;
+
   let body: { name?: string; publicKey?: string } = {};
   try {
     body = await request.json();
