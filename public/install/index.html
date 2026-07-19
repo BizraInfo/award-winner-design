@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Install Dema — BIZRA Node0 CLI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800&family=Cairo:wght@300;400;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root { --gold:#C9A962; --gold-hi:#E8C870; --ivory:#F6F2E9; --dim:#8294B2; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { min-height:100vh; background:radial-gradient(130% 120% at 50% 40%, #0d1c31 0%, #081120 48%, #04080f 100%);
+         color:var(--ivory); font-family:'Cairo',sans-serif; display:flex; flex-direction:column;
+         align-items:center; padding:60px 24px; }
+  .eyebrow { font-family:'Cinzel',serif; font-size:14px; font-weight:600; letter-spacing:0.46em;
+             color:rgba(201,169,98,.85); margin-bottom:18px; text-align:center; }
+  h1 { font-family:'Cinzel',serif; font-weight:800; font-size:clamp(38px,6vw,72px); letter-spacing:0.12em;
+       text-shadow:0 0 70px rgba(201,169,98,.4); text-align:center; }
+  .sub { font-size:clamp(15px,2vw,20px); color:var(--dim); margin-top:14px; text-align:center; max-width:640px; line-height:1.5; }
+  .rule { width:80px; height:1px; background:linear-gradient(90deg,transparent,var(--gold),transparent); margin:36px 0; }
+  .card { width:100%; max-width:680px; background:linear-gradient(180deg, rgba(18,30,52,.96), rgba(9,17,32,.96));
+          border:1px solid rgba(201,169,98,.32); border-top:3px solid var(--gold); border-radius:12px;
+          padding:28px; margin-bottom:22px; }
+  .card h2 { font-family:'Cinzel',serif; font-size:20px; font-weight:600; color:var(--gold-hi); margin-bottom:14px; letter-spacing:0.06em; }
+  pre { background:#04080f; border:1px solid rgba(201,169,98,.2); border-radius:8px; padding:16px 18px;
+        overflow-x:auto; font-family:'JetBrains Mono',monospace; font-size:14px; line-height:1.7; color:var(--ivory); }
+  pre .c { color:var(--dim); }
+  .card p, .card li { font-size:15px; color:rgba(246,242,233,.8); line-height:1.6; }
+  .card ul { padding-left:20px; margin-top:8px; }
+  .label { display:inline-block; font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:0.08em;
+           border:1px solid rgba(127,217,176,.4); color:#7FD9B0; border-radius:4px; padding:2px 8px; margin-right:8px; }
+  .label.amber { border-color:rgba(232,200,112,.4); color:var(--gold-hi); }
+  a { color:var(--gold); } a:hover { color:var(--gold-hi); }
+  .foot { font-family:'JetBrains Mono',monospace; font-size:13px; letter-spacing:0.26em;
+          color:rgba(201,169,98,.7); margin-top:30px; text-align:center; }
+</style>
+</head>
+<body>
+  <div class="eyebrow">NODE0 · LOCAL-FIRST CLI</div>
+  <h1>INSTALL DEMA</h1>
+  <p class="sub">Dema is the human-facing CLI of BIZRA Node0 — a local-first mission cockpit.
+     No daemon, no background process, no network calls by default, no account. Everything it does leaves a readable receipt on your own disk.</p>
+  <div class="rule"></div>
+
+  <div class="card">
+    <h2>Requirements</h2>
+    <ul>
+      <li>Node.js ≥ 20 (<a href="https://nodejs.org" rel="noopener">nodejs.org</a>)</li>
+      <li>Git</li>
+      <li>Linux, macOS, or Windows (WSL recommended)</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2>Install &amp; run</h2>
+    <pre><span class="c"># zero dependencies — clone and run</span>
+git clone https://github.com/BizraInfo/Dema.git
+cd Dema
+node bin/dema</pre>
+    <p style="margin-top:12px">That's the whole install. The bare command shows the banner, current setup state, and the next safe step. Try <code style="font-family:'JetBrains Mono',monospace">node bin/dema welcome</code> for first-run orientation, or <code style="font-family:'JetBrains Mono',monospace">node bin/dema --help</code> for the full surface.</p>
+  </div>
+
+  <div class="card">
+    <h2>What you get today</h2>
+    <p><span class="label">MEASURED</span>Deterministic local kernels: mission previews, receipt read/list, consent-gated sandbox actions, proof-chain verification — each backed by tests in the repo.</p>
+    <p style="margin-top:10px"><span class="label amber">PREVIEW</span>Federation, token economy, and Proof-of-Impact rewards are design surfaces only — previewed and labeled in the CLI, not live. Nothing mints, nothing trades, nothing phones home.</p>
+  </div>
+
+  <div class="card">
+    <h2>See it first</h2>
+    <p>Three short films explain the architecture: <a href="/films/index.html">watch the Node0 onboarding films</a>.</p>
+  </div>
+
+  <div class="foot">bizra.ai · bizra.info · github.com/BizraInfo/Dema</div>
+</body>
+</html>
