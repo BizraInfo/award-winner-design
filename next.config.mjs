@@ -126,6 +126,22 @@ const nextConfig = {
           },
         ],
       },
+      {
+        // /films dc-runtime compiles JSX in-browser via new Function() —
+        // needs unsafe-eval. Scoped to /films only (last matching header
+        // key overrides the global rule); the rest of the site keeps the
+        // strict CSP. Remove when films are precompiled (Dema TASK-024).
+        source: '/films/:path*',
+        headers: [
+          {
+            key: 'Content-Security-Policy',
+            value: getContentSecurityPolicy().replace(
+              "script-src 'self' 'unsafe-inline'",
+              "script-src 'self' 'unsafe-eval' 'unsafe-inline'"
+            ),
+          },
+        ],
+      },
     ];
   },
 
