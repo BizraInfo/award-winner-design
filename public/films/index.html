@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BIZRA — Node0 Onboarding Films</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800&family=Cairo:wght@300;400;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root { --gold:#C9A962; --gold-hi:#E8C870; --ivory:#F6F2E9; --dim:#8294B2; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { min-height:100vh; background:radial-gradient(130% 120% at 50% 40%, #0d1c31 0%, #081120 48%, #04080f 100%);
+         color:var(--ivory); font-family:'Cairo',sans-serif; display:flex; flex-direction:column;
+         align-items:center; justify-content:center; padding:60px 24px; }
+  .eyebrow { font-family:'Cinzel',serif; font-size:14px; font-weight:600; letter-spacing:0.46em;
+             color:rgba(201,169,98,.85); margin-bottom:18px; text-align:center; }
+  h1 { font-family:'Cinzel',serif; font-weight:800; font-size:clamp(42px,7vw,84px); letter-spacing:0.12em;
+       text-shadow:0 0 70px rgba(201,169,98,.4); text-align:center; }
+  .sub { font-family:'Cinzel',serif; font-weight:600; font-size:clamp(13px,2vw,20px); letter-spacing:0.32em;
+         color:rgba(232,200,112,.95); margin-top:12px; text-align:center; }
+  .rule { width:80px; height:1px; background:linear-gradient(90deg,transparent,var(--gold),transparent); margin:36px 0; }
+  .films { display:flex; gap:22px; flex-wrap:wrap; justify-content:center; max-width:1200px; }
+  a.card { flex:1 1 300px; max-width:360px; min-height:200px; text-decoration:none; color:var(--ivory);
+           background:linear-gradient(180deg, rgba(18,30,52,.96), rgba(9,17,32,.96));
+           border:1px solid rgba(201,169,98,.32); border-top:3px solid var(--gold);
+           border-radius:12px; padding:30px 26px; transition:box-shadow .2s, transform .2s; }
+  a.card:hover { box-shadow:0 0 34px rgba(201,169,98,.25); transform:translateY(-3px); }
+  .num { font-family:'JetBrains Mono',monospace; font-size:18px; color:rgba(201,169,98,.85); margin-bottom:14px; }
+  .t { font-family:'Cairo',sans-serif; font-weight:700; font-size:26px; line-height:1.2; }
+  .s { font-size:16px; color:var(--dim); margin-top:12px; line-height:1.45; }
+  .foot { font-family:'JetBrains Mono',monospace; font-size:14px; letter-spacing:0.28em;
+          color:rgba(201,169,98,.7); margin-top:48px; }
+  .ar { direction:rtl; font-size:18px; color:rgba(246,242,233,.7); margin-top:20px; }
+</style>
+</head>
+<body>
+  <div class="eyebrow">NODE0 ONBOARDING · ARCHITECTURE FILMS</div>
+  <h1>BIZRA</h1>
+  <div class="sub">THE SOVEREIGN MISSION OPERATING SYSTEM</div>
+  <div class="rule"></div>
+  <nav class="films">
+    <a class="card" href="./BIZRA%20The%20Third%20Fact.dc.html">
+      <div class="num">01</div>
+      <div class="t">The Third Fact</div>
+      <div class="s">Origin cinematic — hard questions, the crisis, the seed, the revelation, hope. ~3:45.</div>
+    </a>
+    <a class="card" href="./BIZRA%20Mission%20Thesis.dc.html">
+      <div class="num">02</div>
+      <div class="t">Mission Thesis</div>
+      <div class="s">Mission-centric computing — the shift, the killer model-swap demo, five guarantees, the impact economy.</div>
+    </a>
+    <a class="card" href="./BIZRA%20Federation%20Atlas.dc.html">
+      <div class="num">03</div>
+      <div class="t">Federation Atlas</div>
+      <div class="s">Animated topology tour — Node0 → Gateway → Universal Resource Pool → sovereign peer federation.</div>
+    </a>
+  </nav>
+  <div class="ar">ذكاؤك قد يتغيّر… مهمّتك تبقى.</div>
+  <div class="foot">bizra.ai · bizra.info</div>
+</body>
+</html>
