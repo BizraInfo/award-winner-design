@@ -11,10 +11,13 @@ const getContentSecurityPolicy = () => {
       "default-src 'self'",
       // Next.js requires unsafe-inline for hydration scripts and inline data.
       // TODO: migrate to nonce-based CSP via next/headers middleware.
-      "script-src 'self' 'unsafe-inline' blob:",
+      // unpkg.com: React/Babel runtime for /films and /install static pages
+      // (vendor locally and remove — tracked in Dema board TASK-024).
+      "script-src 'self' 'unsafe-inline' blob: https://unpkg.com",
       // Inline styles used extensively by sovereign components (TrustSite, design-tokens).
       // TODO: migrate inline styles to Tailwind classes, then remove unsafe-inline.
-      "style-src 'self' 'unsafe-inline'",
+      // fonts.googleapis.com: stylesheet for /films and /install static pages.
+      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "img-src 'self' data: blob: https:",
       // Google Fonts loaded from layout.tsx via next/font
       "font-src 'self' data: https://fonts.gstatic.com",
@@ -31,10 +34,10 @@ const getContentSecurityPolicy = () => {
   // Development: Allow unsafe-eval and unsafe-inline for DX
   return [
     "default-src 'self'",
-    "script-src 'self' 'unsafe-eval' 'unsafe-inline' blob:",  // Required for HMR/Three.js in dev
-    "style-src 'self' 'unsafe-inline'",                        // Required for styled components in dev
+    "script-src 'self' 'unsafe-eval' 'unsafe-inline' blob: https://unpkg.com",  // Required for HMR/Three.js in dev + /films runtime
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",             // Required for styled components in dev + /films fonts
     "img-src 'self' data: blob: https:",
-    "font-src 'self' data:",
+    "font-src 'self' data: https://fonts.gstatic.com",
     "connect-src 'self' https: wss: ws:",                      // ws: for webpack HMR
     "worker-src 'self' blob:",
     "frame-ancestors 'none'",
@@ -47,6 +50,15 @@ const getContentSecurityPolicy = () => {
 const nextConfig = {
   // Enable standalone output for Docker deployment
   output: 'standalone',
+
+  // Clean URLs for the static public/ showcases (Next does not
+  // directory-index public/, so /films alone would 404).
+  async redirects() {
+    return [
+      { source: '/films', destination: '/films/index.html', permanent: false },
+      { source: '/install', destination: '/install/index.html', permanent: false },
+    ];
+  },
   
   typescript: {
     ignoreBuildErrors: false,

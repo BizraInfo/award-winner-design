@@ -100,6 +100,8 @@ function Navigation() {
         <span className="cursor-pointer hover:text-radiant-gold transition-colors" onClick={() => document.getElementById('slide-1')?.scrollIntoView({ behavior: 'smooth' })}>Struggle</span>
         <span className="cursor-pointer hover:text-radiant-gold transition-colors" onClick={() => document.getElementById('slide-3')?.scrollIntoView({ behavior: 'smooth' })}>Architecture</span>
         <span className="cursor-pointer hover:text-radiant-gold transition-colors" onClick={() => document.getElementById('slide-5')?.scrollIntoView({ behavior: 'smooth' })}>Evidence</span>
+        <a href="/films" className="hover:text-radiant-gold transition-colors">Films</a>
+        <a href="/install" className="hover:text-radiant-gold transition-colors">Install</a>
       </div>
       <div className="flex items-center gap-4">
         <SovereignStatus />
