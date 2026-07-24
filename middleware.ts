@@ -27,20 +27,13 @@ import {
   isInviteOnlyAccess,
 } from '@/lib/beta/access-mode';
 import { verifyBetaAdmitTokenEdge } from '@/lib/beta/admit-token-edge';
+import { classifyPublicPath } from '@/lib/public-claims/boundary';
 
 const API_PREFIX = '/api/';
 const ACCESS_TOKEN_COOKIE = 'access_token';
 
 const PUBLIC_API_PATHS = new Set<string>([
-  '/api/auth/login',
   '/api/csrf-token',
-  '/api/health',
-  '/api/scaffold/health',
-  '/api/scaffold/metrics',
-  '/api/scaffold/evidence',
-  '/api/ethics',
-  '/api/genesis',
-  '/api/node/activate',
   '/api/beta/status',
   '/api/beta/verify-invite',
 ]);
@@ -75,6 +68,12 @@ function isVerboseHealthRequest(req: NextRequest): boolean {
 }
 
 function isPublicRequest(req: NextRequest): boolean {
+  if (
+    req.nextUrl.pathname === '/api/auth/login' &&
+    ['POST', 'PUT'].includes(req.method.toUpperCase())
+  ) {
+    return true;
+  }
   if (PUBLIC_API_PATHS.has(req.nextUrl.pathname)) return true;
   if (req.nextUrl.pathname === '/api/health' && !isVerboseHealthRequest(req)) {
     return true;
@@ -219,7 +218,23 @@ export async function middleware(req: NextRequest) {
   }
 
   if (!isApiRequest(req.nextUrl.pathname)) {
-    return NextResponse.next();
+    const disposition = classifyPublicPath(req.nextUrl.pathname);
+
+    if (disposition === 'contained') {
+      const containmentUrl = req.nextUrl.clone();
+      containmentUrl.pathname = '/';
+      containmentUrl.search = '';
+      containmentUrl.searchParams.set('containment', 'public-claim-review');
+      const response = NextResponse.redirect(containmentUrl, 307);
+      response.headers.set('x-bizra-public-claim-boundary', disposition);
+      response.headers.set('x-robots-tag', 'noindex, nofollow');
+      response.headers.set('cache-control', 'no-store');
+      return response;
+    }
+
+    const response = NextResponse.next();
+    response.headers.set('x-bizra-public-claim-boundary', disposition);
+    return response;
   }
 
   const isAuthRoute = req.nextUrl.pathname === '/api/auth/login';
@@ -239,12 +254,6 @@ export async function middleware(req: NextRequest) {
       blockedResponse.headers.set('Retry-After', String(rate.retryAfter));
     }
     return blockedResponse;
-  }
-
-  if (isPublicRequest(req)) {
-    const response = NextResponse.next();
-    attachRateLimitHeaders(response, limits.max, rate.remaining, rate.resetAt);
-    return response;
   }
 
   // Beta invite-only: block sovereign onboarding APIs without admit cookie.
@@ -269,18 +278,10 @@ export async function middleware(req: NextRequest) {
     }
   }
 
-  // Health verbose gate: rewrite to non-verbose if unauthenticated.
-  // Health probes should always return 200 — never 401.
-  if (isVerboseHealthRequest(req)) {
-    const verboseToken = getAuthToken(req);
-    const verbosePayload = verboseToken ? await verifyAccessToken(verboseToken) : null;
-    if (!verbosePayload) {
-      const url = req.nextUrl.clone();
-      url.searchParams.delete('verbose');
-      const response = NextResponse.rewrite(url);
-      attachRateLimitHeaders(response, limits.max, rate.remaining, rate.resetAt);
-      return response;
-    }
+  if (isPublicRequest(req)) {
+    const response = NextResponse.next();
+    attachRateLimitHeaders(response, limits.max, rate.remaining, rate.resetAt);
+    return response;
   }
 
   const token = getAuthToken(req);
