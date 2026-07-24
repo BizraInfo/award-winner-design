@@ -8,9 +8,18 @@ import {
   isInviteOnlyAccess,
   verifyInviteCode,
 } from "@/lib/beta/access-mode";
+import { buildPublicBetaStatus } from "@/lib/beta/public-status";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+function admittedResponse(mode: ReturnType<typeof getBizraAccessMode>) {
+  return buildPublicBetaStatus({
+    admitted: true,
+    measuredAt: new Date().toISOString(),
+    mode,
+  });
+}
 
 /**
  * POST /api/beta/verify-invite
@@ -18,7 +27,9 @@ export const dynamic = "force-dynamic";
  */
 export async function POST(request: NextRequest) {
   if (!isInviteOnlyAccess()) {
-    return NextResponse.json({ admitted: true, mode: getBizraAccessMode() });
+    return NextResponse.json(admittedResponse(getBizraAccessMode()), {
+      headers: { "Cache-Control": "no-store" },
+    });
   }
 
   let body: { code?: string } = {};
@@ -52,10 +63,8 @@ export async function POST(request: NextRequest) {
   }
 
   const opts = betaAdmitCookieOptions(30 * 24 * 60 * 60);
-  const response = NextResponse.json({
-    admitted: true,
-    mode: "invite_only",
-    message: "Invitation accepted. You may initialize your node.",
+  const response = NextResponse.json(admittedResponse("invite_only"), {
+    headers: { "Cache-Control": "no-store" },
   });
   response.cookies.set(opts.name, token, {
     httpOnly: opts.httpOnly,

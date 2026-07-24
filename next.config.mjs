@@ -51,15 +51,6 @@ const nextConfig = {
   // Enable standalone output for Docker deployment
   output: 'standalone',
 
-  // Clean URLs for the static public/ showcases (Next does not
-  // directory-index public/, so /films alone would 404).
-  async redirects() {
-    return [
-      { source: '/films', destination: '/films/index.html', permanent: false },
-      { source: '/install', destination: '/install/index.html', permanent: false },
-    ];
-  },
-  
   typescript: {
     ignoreBuildErrors: false,
   },
