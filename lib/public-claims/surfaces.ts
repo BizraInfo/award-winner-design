@@ -83,6 +83,12 @@ export const PUBLIC_PAGE_SURFACES = Object.freeze([
     access: 'secret-parameterized',
     disposition: 'exclude-secret',
     capture: false,
+    // Closed-beta exemption from the containment wrapper: the redemption page
+    // is live so invited testers can accept workspace invites. The page is
+    // still held to the forbidden-phrase claim gate (see
+    // public-build-containment.test.ts), reachable only via an unguessable
+    // invite token, and stays excluded from public capture.
+    liveInBeta: true,
     rationale: 'An invite token is a credential and must never enter public capture.',
   }),
   Object.freeze({

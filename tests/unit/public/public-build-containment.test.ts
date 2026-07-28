@@ -14,6 +14,8 @@ import { promisify } from 'node:util';
 
 import { afterEach, describe, expect, it } from 'vitest';
 
+import { PUBLIC_PAGE_SURFACES } from '@/lib/public-claims/surfaces';
+
 const execFileAsync = promisify(execFile);
 const PROJECT_ROOT = process.cwd();
 const CHECKER_PATH = resolve(
@@ -122,6 +124,15 @@ describe('public build containment', () => {
   });
 
   it('keeps every non-root page as the minimal server containment wrapper', async () => {
+    // Exemptions come from the surface inventory (single source of truth),
+    // never from a list in this test: a page ships its real implementation
+    // only when its inventory entry declares `liveInBeta: true`, and such
+    // pages are held to the claim gate in the next test instead.
+    const liveBetaPages = new Set(
+      PUBLIC_PAGE_SURFACES.filter(
+        (surface) => (surface as { liveInBeta?: boolean }).liveInBeta === true
+      ).map((surface) => surface.sourcePath)
+    );
     const pageFiles = (await walkFiles(resolve(PROJECT_ROOT, 'app')))
       .map((file) => toPosix(relative(PROJECT_ROOT, file)))
       .filter(
@@ -130,10 +141,35 @@ describe('public build containment', () => {
 
     expect(pageFiles.length).toBeGreaterThan(0);
     for (const pageFile of pageFiles) {
+      if (liveBetaPages.has(pageFile)) continue;
       await expect(
         readFile(resolve(PROJECT_ROOT, pageFile), 'utf8'),
         pageFile
       ).resolves.toBe(CONTAINMENT_WRAPPER);
+    }
+  });
+
+  it('holds every liveInBeta page to the claim gate instead of the wrapper', async () => {
+    const liveBetaSurfaces = PUBLIC_PAGE_SURFACES.filter(
+      (surface) => (surface as { liveInBeta?: boolean }).liveInBeta === true
+    );
+    // The exemption must be used deliberately — an empty set means someone
+    // removed the flag without restoring the wrapper requirement above.
+    expect(liveBetaSurfaces.length).toBeGreaterThan(0);
+    for (const surface of liveBetaSurfaces) {
+      const source = await readFile(
+        resolve(PROJECT_ROOT, surface.sourcePath),
+        'utf8'
+      );
+      expect(source, surface.sourcePath).not.toContain(
+        'containUnreviewedPublicRoute'
+      );
+      for (const phrase of FORBIDDEN_GENERATED_PHRASES) {
+        expect(
+          source,
+          `${surface.sourcePath} must not claim "${phrase}"`
+        ).not.toContain(phrase);
+      }
     }
   });
 
