@@ -353,6 +353,16 @@ export const PUBLIC_STATIC_TEXT_SURFACES = Object.freeze([
     capture: true,
     rationale: 'Legacy sovereign-system claims remain contained.',
   }),
+  Object.freeze({
+    id: 'static:/the-genesis-node.html',
+    kind: 'static-text',
+    route: '/the-genesis-node.html',
+    sourcePath: 'public/the-genesis-node.html',
+    access: 'public',
+    disposition: 'contain',
+    capture: true,
+    rationale: 'Genesis page claims carry truth labels and receipt pointers; contained pending claim-binding review.',
+  }),
 ]);
 
 export const PUBLIC_GET_API_SURFACES = Object.freeze([
