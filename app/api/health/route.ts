@@ -1,6 +1,10 @@
 import { NextResponse } from 'next/server'
 import { healthChecks, metrics } from '@/lib/observability'
 import { getRedisHealthStatus } from '@/lib/redis/client'
+import {
+  PUBLIC_BOUNDARY,
+  PUBLIC_CLAIM_AUDIT_URL,
+} from '@/lib/public-claims/boundary'
 
 /**
  * Health Check Endpoint
@@ -50,9 +54,17 @@ export async function GET(request: Request) {
   }
 
   // Add detailed checks if verbose
-  const response = verbose 
+  const response = verbose
     ? { ...healthCheck, checks: systemHealth.checks, memory: getMemoryHealth() }
-    : healthCheck;
+    : {
+        status: systemHealth.status,
+        claim_id: 'BIZRA-PUBLIC-004',
+        evidence_commit: PUBLIC_BOUNDARY.evidenceCommit,
+        evidence_href: PUBLIC_CLAIM_AUDIT_URL,
+        measured_at: systemHealth.timestamp,
+        scope: 'web_process_health_only',
+        truth_label: 'MEASURED',
+      };
 
   // Return appropriate status code
   const statusCode = systemHealth.status === 'healthy' ? 200 

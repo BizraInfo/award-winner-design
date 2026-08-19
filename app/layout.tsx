@@ -1,8 +1,6 @@
 import type { Metadata } from "next"
 import { Inter, Playfair_Display, Amiri, Cinzel } from 'next/font/google'
 import { JetBrains_Mono } from 'next/font/google'
-import { GlobalErrorBoundary } from "@/components/infrastructure/GlobalErrorBoundary"
-import { PerformanceObserver } from "@/components/infrastructure/PerformanceObserver"
 import "./globals.css"
 
 const inter = Inter({
@@ -37,10 +35,9 @@ const cinzel = Cinzel({
 })
 
 export const metadata: Metadata = {
-  title: "BIZRA — The Seed of Sovereign Intelligence",
+  title: "BIZRA — Public Evidence Boundary",
   description:
-    "A human-first AI ecosystem that turns intention into verified, ethical, and meaningful action. Not another chatbot. Not another platform that owns you.",
-  generator: 'v0.app'
+    "Current public status, limitations, and links to BIZRA's canonical claim evidence.",
 }
 
 export default function RootLayout({
@@ -51,10 +48,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="scroll-smooth">
       <body className={`${inter.variable} ${playfair.variable} ${amiri.variable} ${cinzel.variable} ${jetbrainsMono.variable} font-sans antialiased bg-celestial-navy text-pure-white overflow-x-hidden`}>
-        <GlobalErrorBoundary>
-          <PerformanceObserver />
-          {children}
-        </GlobalErrorBoundary>
+        {children}
       </body>
     </html>
   )

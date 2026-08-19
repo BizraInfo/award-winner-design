@@ -12,6 +12,7 @@
 #
 # Usage:
 #   cd /data/bizra/repos/award-winner-design
+#   Set CANARY_AUTH_EMAIL and CANARY_AUTH_PASSWORD in the environment.
 #   export BEARER_COOKIE_JAR=/tmp/canary-cookies.txt  # optional
 #   bash scripts/verify-canary-rollback-drill.sh
 #
@@ -29,6 +30,8 @@ APP_URL="${APP_URL:-http://localhost:${APP_PORT}}"
 REDIS_CONTAINER="${REDIS_CONTAINER:-redis-b3-test}"
 JAR="${BEARER_COOKIE_JAR:-/tmp/canary-cookies.txt}"
 RECEIPT="${RECEIPT:-/tmp/canary-rollback-receipt.json}"
+: "${CANARY_AUTH_EMAIL:?CANARY_AUTH_EMAIL is required}"
+: "${CANARY_AUTH_PASSWORD:?CANARY_AUTH_PASSWORD is required}"
 
 log()  { printf '\n\033[1;36m[drill]\033[0m %s\n' "$*"; }
 ok()   { printf '\033[1;32m[ OK ]\033[0m %s\n' "$*"; }
@@ -39,6 +42,14 @@ require curl
 require docker
 require python3
 require jq
+
+authenticate_canary() {
+  jq -cn \
+    '{email: env.CANARY_AUTH_EMAIL, password: env.CANARY_AUTH_PASSWORD}' |
+    curl -fsS -c "$JAR" -X POST "${APP_URL}/api/auth/login" \
+      -H 'Content-Type: application/json' \
+      --data-binary @- >/dev/null
+}
 
 # ---------------------------------------------------------------------------
 # Pre-flight
@@ -52,9 +63,7 @@ curl -fsS "${APP_URL}/api/health" >/dev/null 2>&1 \
   || fail "dev server not reachable at ${APP_URL}. Start it first." 1
 
 rm -f "$JAR"
-curl -fsS -c "$JAR" -X POST "${APP_URL}/api/auth/login" \
-  -H 'Content-Type: application/json' \
-  -d '{"email":"demo@bizra.ai","password":"demo123"}' >/dev/null \
+authenticate_canary \
   || fail "login failed — cannot collect baseline" 1
 
 # Seed genesis owner and capture baseline
@@ -218,9 +227,7 @@ ok "owner set intact (count=${OWNER_COUNT})"
 # restart. A fresh login is required because the refresh-token family in
 # Redis was invalidated during the outage.
 rm -f "$JAR"
-curl -fsS -c "$JAR" -X POST "${APP_URL}/api/auth/login" \
-  -H 'Content-Type: application/json' \
-  -d '{"email":"demo@bizra.ai","password":"demo123"}' >/dev/null \
+authenticate_canary \
   || fail "post-recovery re-login failed — token-store did not self-heal" 4
 ok "post-recovery re-login succeeded (token-store self-healed)"
 
